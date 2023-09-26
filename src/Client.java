@@ -30,7 +30,8 @@ public class Client {
 	private String carNum;
 	private LocalDateTime time;
 	private Integer cost = 5000;
-
+	private String[] spaceName = {"P1","P2","P3","P4","J1","J2","J3","J4","H1","H2","H3","H4","L1","L2","L3","L4"};
+			
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
@@ -82,6 +83,29 @@ public class Client {
 
 	}
 
+	private void inCarProcess(ParkSpaceButton btn, int space) {
+		if (parkSpace[space] == false) {
+			time = LocalDateTime.now(); 
+			ImageIcon buttonImage = new ImageIcon("./ButtonImage/Car3.png");
+			Image image = buttonImage.getImage().getScaledInstance(40, 80, Image.SCALE_SMOOTH);
+			buttonImage.setImage(image);
+
+			inCarDialog();
+			setParkSpace(space, true);
+			btn.setIcon(buttonImage);
+			btn.setText("");
+
+			System.out.println("===inCar[" + spaceName[space] + "]=== \nCarNumber: " + carNum + "\nParking Time: " + time);
+		} else {
+			//시간,요금 받아오기
+			setParkSpace(space, false);
+			outCarDialog();
+			btn.setText(spaceName[space]);
+			btn.setIcon(null);
+			System.out.println("===outCar[" + spaceName[space] + "]=== \nCarNumber: " + carNum + "\nParking Time: " + time);
+		}
+	}
+	
 	private void outCarDialog() {
 		JOptionPane.showMessageDialog(frame, "차량번호: " + carNum + "\n요금: " + cost + "\n결제하시겠습니까??");
 		JOptionPane.showMessageDialog(frame, "출차처리 되었습니다.");
@@ -128,25 +152,7 @@ public class Client {
 		ParkSpaceButton P1 = new ParkSpaceButton("P1");
 		P1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				setTime(LocalDateTime.now());
-				if (parkSpace[0] == false) {
-					ImageIcon buttonImage = new ImageIcon("./ButtonImage/Car3.png");
-					Image image = buttonImage.getImage().getScaledInstance(40, 80, Image.SCALE_SMOOTH);
-					buttonImage.setImage(image);
-
-					inCarDialog();
-					setParkSpace(0, true);
-					P1.setIcon(buttonImage);
-					P1.setText("");
-
-					System.out.println("===inCar=== \nCarNumber: " + carNum + "\nParking Time: " + time);
-				} else {
-					setParkSpace(0, false);
-					outCarDialog();
-					P1.setText("P1");
-					P1.setIcon(null);
-					System.out.println("===outCar=== \nCarNumber: " + carNum + "\nParking Time: " + time);
-				}
+				inCarProcess(P1,0);
 			}
 		});
 		P1.setBounds(80, 10, 50, 80);
@@ -154,79 +160,151 @@ public class Client {
 
 		//parkSpace[1]
 		ParkSpaceButton P2 = new ParkSpaceButton("P2");
+		P2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				inCarProcess(P2,1);
+			}
+		});
 		P2.setBounds(140, 10, 50, 80);
 		frame.getContentPane().add(P2);
 
 		//parkSpace[2]
 		ParkSpaceButton P3 = new ParkSpaceButton("P3");
+		P3.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				inCarProcess(P3,2);
+			}
+		});
 		P3.setBounds(200, 10, 50, 80);
 		frame.getContentPane().add(P3);
 
 		//parkSpace[3]
 		ParkSpaceButton P4 = new ParkSpaceButton("P4");
+		P4.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				inCarProcess(P4,3);
+			}
+		});
 		P4.setBounds(260, 10, 50, 80);
 		frame.getContentPane().add(P4);
 
 		//parkSpace[4]
 		ParkSpaceButton J1 = new ParkSpaceButton("J1");
 		J1.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {}
+			public void actionPerformed(ActionEvent e) {
+				inCarProcess(J1,4);
+			}
 		});
 		J1.setBounds(410, 10, 50, 80);
 		frame.getContentPane().add(J1);
 
 		//parkSpace[5]
 		ParkSpaceButton J2 = new ParkSpaceButton("J2");
+		J2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				inCarProcess(J2,5);
+			}
+		});
 		J2.setBounds(470, 10, 50, 80);
 		frame.getContentPane().add(J2);
 
 		//parkSpace[6]
 		ParkSpaceButton J3 = new ParkSpaceButton("J3");
+		J3.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				inCarProcess(J3,6);
+			}
+		});
 		J3.setBounds(530, 10, 50, 80);
 		frame.getContentPane().add(J3);
 
 		//parkSpace[7]
 		ParkSpaceButton J4 = new ParkSpaceButton("J4");
+		J4.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				inCarProcess(J4,7);
+			}
+		});
 		J4.setBounds(590, 10, 50, 80);
 		frame.getContentPane().add(J4);
 
 		//parkSpace[8]
 		ParkSpaceButton H1 = new ParkSpaceButton("H1");
+		H1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				inCarProcess(H1,8);
+			}
+		});
 		H1.setBounds(80, 260, 50, 80);
 		frame.getContentPane().add(H1);
 
 		//parkSpace[9]
 		ParkSpaceButton H2 = new ParkSpaceButton("H2");
+		H2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				inCarProcess(H2,9);
+			}
+		});
 		H2.setBounds(140, 260, 50, 80);
 		frame.getContentPane().add(H2);
 
 		//parkSpace[10]
 		ParkSpaceButton H3 = new ParkSpaceButton("H3");
+		H3.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				inCarProcess(H3,10);
+			}
+		});
 		H3.setBounds(200, 260, 50, 80);
 		frame.getContentPane().add(H3);
 
 		//parkSpace[11]
 		ParkSpaceButton H4 = new ParkSpaceButton("H4");
+		H4.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				inCarProcess(H4,11);
+			}
+		});
 		H4.setBounds(260, 260, 50, 80);
 		frame.getContentPane().add(H4);
 
 		//parkSpace[12]
 		ParkSpaceButton L1 = new ParkSpaceButton("L1");
+		L1.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				inCarProcess(L1,12);
+			}
+		});
 		L1.setBounds(410, 260, 50, 80);
 		frame.getContentPane().add(L1);
 
 		//parkSpace[13]
 		ParkSpaceButton L2 = new ParkSpaceButton("L2");
+		L2.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				inCarProcess(L2,13);
+			}
+		});
 		L2.setBounds(470, 260, 50, 80);
 		frame.getContentPane().add(L2);
 
 		//parkSpace[14]
 		ParkSpaceButton L3 = new ParkSpaceButton("L3");
+		L3.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				inCarProcess(L3,14);
+			}
+		});
 		L3.setBounds(530, 260, 50, 80);
 		frame.getContentPane().add(L3);
 
 		//parkSpace[15]
 		ParkSpaceButton L4 = new ParkSpaceButton("L4");
+		L4.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				inCarProcess(L4,15);
+			}
+		});
 		L4.setBounds(590, 260, 50, 80);
 		frame.getContentPane().add(L4);
 
