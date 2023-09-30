@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="network_temporary/src"/>
+	<classpathentry kind="lib" path="network_temporary/jgoodies-forms-1.8.0.jar"/>
+	<classpathentry kind="lib" path="network_temporary/jgoodies-forms-1.8.0-sources.jar"/>
+	<classpathentry kind="lib" path="network_temporary/miglayout15-swing.jar"/>
+	<classpathentry kind="output" path="network_temporary/bin"/>
+</classpath>
