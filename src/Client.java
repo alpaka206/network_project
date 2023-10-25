@@ -12,7 +12,6 @@ import java.util.List;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
@@ -21,10 +20,11 @@ import javax.swing.SwingConstants;
 import components.BlockButton;
 import components.FloorRadio;
 import components.ParkSpaceButton;
+import components.ParkingLotFrame;
 
 public class Client {
 
-	private JFrame frame;
+	private ParkingLotFrame frame;
 
 	private Boolean[] parkSpace = new Boolean[16];
 	private String sendString;
@@ -218,18 +218,12 @@ public class Client {
 
 		parkSpaceInit();
 
-		ImageIcon backgroundImage = new ImageIcon("./ButtonImage/ParkingLotBackground.jpg");
 		//0~15 = 주차 버튼
 		List<ParkSpaceButton> spaceList = new ArrayList();
 		List<BlockButton> blockList = new ArrayList();
 		List<JLabel> labelList = new ArrayList();
 
-		frame = new JFrame();
-		frame.getContentPane().setBackground(new Color(0, 0, 0));
-		frame.getContentPane().setForeground(new Color(157, 208, 147));
-		frame.setBounds(100, 100, 989, 628);
-		frame.setLocationRelativeTo(null);
-		frame.getContentPane().setLayout(null);
+		frame = new ParkingLotFrame();
 
 		//parkSpace[0]
 		ParkSpaceButton btn0 = new ParkSpaceButton("P1");
