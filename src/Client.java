@@ -38,6 +38,14 @@ public class Client {
 		"H2", "H3", "H4"};
 	private String[] floor3SpaceName = {"I1", "I2", "I3", "I4", "J1", "J2", "J3", "J4", "K1", "K2", "K3", "K4", "L1",
 		"L2", "L3", "L4"};
+
+	private Boolean[] b1Parking = {false, false, false, false, false, false, false, false, false, false, false, false,
+		false, false, false, false};
+	private Boolean[] b2Parking = {false, false, false, false, false, false, false, false, false, false, false, false,
+		false, false, false, false};
+	private Boolean[] b3Parking = {false, false, false, false, false, false, false, false, false, false, false, false,
+		false, false, false, false};
+
 	private int floor = 1;
 
 	public static void main(String[] args) {
@@ -106,6 +114,17 @@ public class Client {
 			labelList.get(0).setBounds(24, 153, 113, 39);
 			labelList.get(1).setBounds(641, 153, 82, 39);
 
+			ImageIcon buttonImage = new ImageIcon("./ButtonImage/Car3.png");
+			Image image = buttonImage.getImage().getScaledInstance(40, 80, Image.SCALE_SMOOTH);
+			buttonImage.setImage(image);
+
+			for (int i = 0; i < 16; i++) {
+				list.get(i).setText(floor1SpaceName[i]);
+				if (b1Parking[i] == true) {
+					list.get(i).setIcon(buttonImage);
+				}
+			}
+
 		} else if (floor == 2) {
 			list.get(0).setBounds(80, 10, 80, 50);
 			list.get(1).setBounds(80, 70, 80, 50);
@@ -126,6 +145,17 @@ public class Client {
 			list.get(13).setBounds(410, 410, 80, 50);
 			list.get(14).setBounds(410, 470, 80, 50);
 			list.get(15).setBounds(410, 530, 80, 50);
+
+			ImageIcon buttonImage = new ImageIcon("./ButtonImage/Car3_r.png");
+			Image image = buttonImage.getImage().getScaledInstance(80, 40, Image.SCALE_SMOOTH);
+			buttonImage.setImage(image);
+
+			for (int i = 0; i < 16; i++) {
+				list.get(i).setText(floor2SpaceName[i]);
+				if (b2Parking[i] == true) {
+					list.get(i).setIcon(buttonImage);
+				}
+			}
 
 			blockList.get(0).setBounds(20, 10, 48, 46);
 			blockList.get(1).setBounds(350, 10, 48, 46);
@@ -189,6 +219,10 @@ public class Client {
 			time = LocalDateTime.now();
 			ImageIcon buttonImage = new ImageIcon("./ButtonImage/Car3.png");
 			Image image = buttonImage.getImage().getScaledInstance(40, 80, Image.SCALE_SMOOTH);
+
+			ImageIcon buttonImageR = new ImageIcon("./ButtonImage/Car3_r.png");
+			Image imageR = buttonImage.getImage().getScaledInstance(80, 40, Image.SCALE_SMOOTH);
+
 			buttonImage.setImage(image);
 
 			inCarDialog();
