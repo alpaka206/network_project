@@ -1,26 +1,21 @@
 import java.awt.Color;
 import java.awt.EventQueue;
-import java.awt.FlowLayout;
 import java.awt.Font;
-import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 
 import components.BlockButton;
 import components.FloorRadio;
 import components.ParkSpaceButton;
 import components.ParkingLotFrame;
+import functions.CollocateSpace;
+import functions.InCarFunc;
 
 public class Client {
 
@@ -39,12 +34,9 @@ public class Client {
 	private String[] floor3SpaceName = {"I1", "I2", "I3", "I4", "J1", "J2", "J3", "J4", "K1", "K2", "K3", "K4", "L1",
 		"L2", "L3", "L4"};
 
-	private Boolean[] b1Parking = {false, false, false, false, false, false, false, false, false, false, false, false,
-		false, false, false, false};
-	private Boolean[] b2Parking = {false, false, false, false, false, false, false, false, false, false, false, false,
-		false, false, false, false};
-	private Boolean[] b3Parking = {false, false, false, false, false, false, false, false, false, false, false, false,
-		false, false, false, false};
+	public InCarFunc inCarFunc = new InCarFunc();
+
+	private Boolean[][] parkingLots = new Boolean[4][16];
 
 	private int floor = 1;
 
@@ -61,18 +53,6 @@ public class Client {
 		});
 	}
 
-	private void setCarNum(String carNum) {
-		this.carNum = carNum;
-	}
-
-	private void setTime(LocalDateTime time) {
-		this.time = time;
-	}
-
-	private void setParkSpace(int index, Boolean status) {
-		parkSpace[index] = status;
-	}
-
 	public Client() {
 		initialize();
 	}
@@ -84,171 +64,13 @@ public class Client {
 		}
 	}
 
-	private void changeFloor(List<ParkSpaceButton> list, List<BlockButton> blockList, List<JLabel> labelList) {
-		if (floor == 1) {
-			list.get(0).setBounds(80, 10, 50, 80);
-			list.get(1).setBounds(140, 10, 50, 80);
-			list.get(2).setBounds(200, 10, 50, 80);
-			list.get(3).setBounds(260, 10, 50, 80);
-
-			list.get(4).setBounds(410, 10, 50, 80);
-			list.get(5).setBounds(470, 10, 50, 80);
-			list.get(6).setBounds(530, 10, 50, 80);
-			list.get(7).setBounds(590, 10, 50, 80);
-
-			list.get(8).setBounds(80, 260, 50, 80);
-			list.get(9).setBounds(140, 260, 50, 80);
-			list.get(10).setBounds(200, 260, 50, 80);
-			list.get(11).setBounds(260, 260, 50, 80);
-
-			list.get(12).setBounds(410, 260, 50, 80);
-			list.get(13).setBounds(470, 260, 50, 80);
-			list.get(14).setBounds(530, 260, 50, 80);
-			list.get(15).setBounds(590, 260, 50, 80);
-
-			blockList.get(0).setBounds(20, 44, 48, 46);
-			blockList.get(1).setBounds(350, 44, 48, 46);
-			blockList.get(2).setBounds(20, 294, 48, 46);
-			blockList.get(3).setBounds(350, 294, 48, 46);
-
-			labelList.get(0).setBounds(24, 153, 113, 39);
-			labelList.get(1).setBounds(641, 153, 82, 39);
-
-			ImageIcon buttonImage = new ImageIcon("./ButtonImage/Car3.png");
-			Image image = buttonImage.getImage().getScaledInstance(40, 80, Image.SCALE_SMOOTH);
-			buttonImage.setImage(image);
-
-			for (int i = 0; i < 16; i++) {
-				list.get(i).setText(floor1SpaceName[i]);
-				if (b1Parking[i] == true) {
-					list.get(i).setIcon(buttonImage);
-				}
-			}
-
-		} else if (floor == 2) {
-			list.get(0).setBounds(80, 10, 80, 50);
-			list.get(1).setBounds(80, 70, 80, 50);
-			list.get(2).setBounds(80, 130, 80, 50);
-			list.get(3).setBounds(80, 200, 80, 50);
-
-			list.get(4).setBounds(80, 350, 80, 50);
-			list.get(5).setBounds(80, 410, 80, 50);
-			list.get(6).setBounds(80, 470, 80, 50);
-			list.get(7).setBounds(80, 530, 80, 50);
-
-			list.get(8).setBounds(410, 10, 80, 50);
-			list.get(9).setBounds(410, 70, 80, 50);
-			list.get(10).setBounds(410, 130, 80, 50);
-			list.get(11).setBounds(410, 200, 80, 50);
-
-			list.get(12).setBounds(410, 350, 80, 50);
-			list.get(13).setBounds(410, 410, 80, 50);
-			list.get(14).setBounds(410, 470, 80, 50);
-			list.get(15).setBounds(410, 530, 80, 50);
-
-			ImageIcon buttonImage = new ImageIcon("./ButtonImage/Car3_r.png");
-			Image image = buttonImage.getImage().getScaledInstance(80, 40, Image.SCALE_SMOOTH);
-			buttonImage.setImage(image);
-
-			for (int i = 0; i < 16; i++) {
-				list.get(i).setText(floor2SpaceName[i]);
-				if (b2Parking[i] == true) {
-					list.get(i).setIcon(buttonImage);
-				}
-			}
-
-			blockList.get(0).setBounds(20, 10, 48, 46);
-			blockList.get(1).setBounds(350, 10, 48, 46);
-			blockList.get(2).setBounds(20, 350, 48, 46);
-			blockList.get(3).setBounds(350, 350, 48, 46);
-
-			labelList.get(0).setBounds(230, 10, 113, 39);
-			labelList.get(1).setBounds(230, 530, 82, 39);
-		} else if (floor == 3) {
-			list.get(0).setBounds(80, 10, 80, 50);
-			list.get(1).setBounds(80, 70, 80, 50);
-			list.get(2).setBounds(80, 130, 80, 50);
-			list.get(3).setBounds(80, 200, 80, 50);
-
-			list.get(4).setBounds(80, 350, 80, 50);
-			list.get(5).setBounds(80, 410, 80, 50);
-			list.get(6).setBounds(80, 470, 80, 50);
-			list.get(7).setBounds(80, 530, 80, 50);
-
-			list.get(8).setBounds(410, 10, 80, 50);
-			list.get(9).setBounds(410, 70, 80, 50);
-			list.get(10).setBounds(410, 130, 80, 50);
-			list.get(11).setBounds(410, 200, 80, 50);
-
-			list.get(12).setBounds(410, 350, 80, 50);
-			list.get(13).setBounds(410, 410, 80, 50);
-			list.get(14).setBounds(410, 470, 80, 50);
-			list.get(15).setBounds(410, 530, 80, 50);
-		}
-	}
-
-	private void inCarDialog() {
-
-		JDialog dialog = new JDialog(frame, "차 번호 입력", true);
-		dialog.getContentPane().setLayout(new FlowLayout());
-		dialog.setSize(300, 100);
-
-		JTextField textField = new JTextField(20);
-		JButton registerButton = new JButton("등록");
-
-		registerButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				String inputText = textField.getText();
-				setCarNum(inputText); // 입력값을 배열에 저장
-				JOptionPane.showMessageDialog(frame, "차량이 등록되었습니다\n 등록된 차량번호: " + inputText);
-				dialog.dispose();
-				frame.setVisible(true);
-			}
-		});
-
-		dialog.getContentPane().add(textField);
-		dialog.getContentPane().add(registerButton);
-		dialog.setLocationRelativeTo(null);
-		dialog.setVisible(true);
-
-	}
-
-	private void inCarProcess(ParkSpaceButton btn, int space) {
-		if (parkSpace[space] == false) {
-			time = LocalDateTime.now();
-			ImageIcon buttonImage = new ImageIcon("./ButtonImage/Car3.png");
-			Image image = buttonImage.getImage().getScaledInstance(40, 80, Image.SCALE_SMOOTH);
-
-			ImageIcon buttonImageR = new ImageIcon("./ButtonImage/Car3_r.png");
-			Image imageR = buttonImage.getImage().getScaledInstance(80, 40, Image.SCALE_SMOOTH);
-
-			buttonImage.setImage(image);
-
-			inCarDialog();
-			setParkSpace(space, true);
-			btn.setIcon(buttonImage);
-			btn.setText("");
-
-			System.out.println(
-				"===inCar[" + floor1SpaceName[space] + "]=== \nCarNumber: " + carNum + "\nParking Time: " + time);
-		} else {
-			//시간,요금 받아오기
-			setParkSpace(space, false);
-			outCarDialog();
-			btn.setText(floor1SpaceName[space]);
-			btn.setIcon(null);
-			System.out.println(
-				"===outCar[" + floor1SpaceName[space] + "]=== \nCarNumber: " + carNum + "\nParking Time: " + time);
-		}
-	}
-
-	private void outCarDialog() {
-		JOptionPane.showMessageDialog(frame, "차량번호: " + carNum + "\n요금: " + cost + "\n결제하시겠습니까??");
-		JOptionPane.showMessageDialog(frame, "출차처리 되었습니다.");
-	}
-
 	private void initialize() {
+
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 16; j++) {
+				parkingLots[i][j] = false;
+			}
+		}
 
 		parkSpaceInit();
 
@@ -264,7 +86,7 @@ public class Client {
 		spaceList.add(btn0);
 		btn0.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarProcess(btn0, 0);
+				inCarFunc.inCarProcess(btn0, 0, parkingLots[floor], frame, floor);
 			}
 		});
 		btn0.setBounds(80, 10, 50, 80);
@@ -275,7 +97,7 @@ public class Client {
 		spaceList.add(btn1);
 		btn1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarProcess(btn1, 1);
+				inCarFunc.inCarProcess(btn1, 1, parkingLots[floor], frame, floor);
 			}
 		});
 		btn1.setBounds(140, 10, 50, 80);
@@ -286,7 +108,7 @@ public class Client {
 		spaceList.add(btn2);
 		btn2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarProcess(btn2, 2);
+				inCarFunc.inCarProcess(btn2, 2, parkingLots[floor], frame, floor);
 			}
 		});
 		btn2.setBounds(200, 10, 50, 80);
@@ -297,7 +119,7 @@ public class Client {
 		spaceList.add(btn3);
 		btn3.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarProcess(btn3, 3);
+				inCarFunc.inCarProcess(btn3, 3, parkingLots[floor], frame, floor);
 			}
 		});
 		btn3.setBounds(260, 10, 50, 80);
@@ -308,7 +130,7 @@ public class Client {
 		spaceList.add(btn4);
 		btn4.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarProcess(btn4, 4);
+				inCarFunc.inCarProcess(btn4, 4, parkingLots[floor], frame, floor);
 			}
 		});
 		btn4.setBounds(410, 10, 50, 80);
@@ -319,7 +141,7 @@ public class Client {
 		spaceList.add(btn5);
 		btn5.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarProcess(btn5, 5);
+				inCarFunc.inCarProcess(btn5, 5, parkingLots[floor], frame, floor);
 			}
 		});
 		btn5.setBounds(470, 10, 50, 80);
@@ -330,7 +152,7 @@ public class Client {
 		spaceList.add(btn6);
 		btn6.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarProcess(btn6, 6);
+				inCarFunc.inCarProcess(btn6, 6, parkingLots[floor], frame, floor);
 			}
 		});
 		btn6.setBounds(530, 10, 50, 80);
@@ -341,7 +163,7 @@ public class Client {
 		spaceList.add(btn7);
 		btn7.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarProcess(btn7, 7);
+				inCarFunc.inCarProcess(btn7, 7, parkingLots[floor], frame, floor);
 			}
 		});
 		btn7.setBounds(590, 10, 50, 80);
@@ -352,7 +174,7 @@ public class Client {
 		spaceList.add(btn8);
 		btn8.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarProcess(btn8, 8);
+				inCarFunc.inCarProcess(btn8, 8, parkingLots[floor], frame, floor);
 			}
 		});
 		btn8.setBounds(80, 260, 50, 80);
@@ -363,7 +185,7 @@ public class Client {
 		spaceList.add(btn9);
 		btn9.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarProcess(btn9, 9);
+				inCarFunc.inCarProcess(btn9, 9, parkingLots[floor], frame, floor);
 			}
 		});
 		btn9.setBounds(140, 260, 50, 80);
@@ -374,7 +196,7 @@ public class Client {
 		spaceList.add(btn10);
 		btn10.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarProcess(btn10, 10);
+				inCarFunc.inCarProcess(btn10, 10, parkingLots[floor], frame, floor);
 			}
 		});
 		btn10.setBounds(200, 260, 50, 80);
@@ -385,7 +207,7 @@ public class Client {
 		spaceList.add(btn11);
 		btn11.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarProcess(btn11, 11);
+				inCarFunc.inCarProcess(btn11, 11, parkingLots[floor], frame, floor);
 			}
 		});
 		btn11.setBounds(260, 260, 50, 80);
@@ -396,7 +218,7 @@ public class Client {
 		spaceList.add(btn12);
 		btn12.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarProcess(btn12, 12);
+				inCarFunc.inCarProcess(btn12, 12, parkingLots[floor], frame, floor);
 			}
 		});
 		btn12.setBounds(410, 260, 50, 80);
@@ -407,7 +229,7 @@ public class Client {
 		spaceList.add(btn13);
 		btn13.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarProcess(btn13, 13);
+				inCarFunc.inCarProcess(btn13, 13, parkingLots[floor], frame, floor);
 			}
 		});
 		btn13.setBounds(470, 260, 50, 80);
@@ -418,7 +240,7 @@ public class Client {
 		spaceList.add(btn14);
 		btn14.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarProcess(btn14, 14);
+				inCarFunc.inCarProcess(btn14, 14, parkingLots[floor], frame, floor);
 			}
 		});
 		btn14.setBounds(530, 260, 50, 80);
@@ -429,7 +251,7 @@ public class Client {
 		spaceList.add(btn15);
 		btn15.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarProcess(btn15, 15);
+				inCarFunc.inCarProcess(btn15, 15, parkingLots[floor], frame, floor);
 			}
 		});
 		btn15.setBounds(590, 260, 50, 80);
@@ -439,7 +261,8 @@ public class Client {
 		B1_btn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				floor = 1;
-				changeFloor(spaceList, blockList, labelList);
+				CollocateSpace collocateSpace = new CollocateSpace();
+				collocateSpace.collocateSpace(spaceList, blockList, labelList, 1, parkingLots[floor]);
 			}
 		});
 		B1_btn.setBounds(800, 190, 121, 46);
@@ -450,13 +273,21 @@ public class Client {
 		B2_btn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				floor = 2;
-				changeFloor(spaceList, blockList, labelList);
+				CollocateSpace collocateSpace = new CollocateSpace();
+				collocateSpace.collocateSpace(spaceList, blockList, labelList, 2, parkingLots[floor]);
 			}
 		});
 		frame.getContentPane().add(B2_btn);
 
 		FloorRadio B3_btn = new FloorRadio(" B3");
 		B3_btn.setBounds(800, 286, 121, 46);
+		B3_btn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				floor = 3;
+				CollocateSpace collocateSpace = new CollocateSpace();
+				collocateSpace.collocateSpace(spaceList, blockList, labelList, 3, parkingLots[floor]);
+			}
+		});
 		frame.getContentPane().add(B3_btn);
 
 		JLabel floorLabel = new JLabel("B1");
