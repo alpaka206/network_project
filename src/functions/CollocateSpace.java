@@ -63,25 +63,9 @@ public class CollocateSpace {
 				}
 			}
 
+			labelList.get(2).setText("B1");
+
 		} else if (floor == 2) {
-			System.out.println("floor" + floor);
-			for (int i = 0; i < 16; i++)
-				System.out.println(parkSpaces[i]);
-
-			ImageIcon buttonImage = new ImageIcon("./ButtonImage/Car3_r.png");
-			Image image = buttonImage.getImage().getScaledInstance(80, 40, Image.SCALE_SMOOTH);
-			buttonImage.setImage(image);
-
-			for (int i = 0; i < 16; i++) {
-				if (parkSpaces[i] == true) {
-					list.get(i).setText("");
-					list.get(i).setIcon(buttonImage);
-				} else {
-					list.get(i).setText(floor2SpaceName[i]);
-					list.get(i).setIcon(null);
-				}
-			}
-
 			list.get(0).setBounds(80, 10, 80, 50);
 			list.get(1).setBounds(80, 70, 80, 50);
 			list.get(2).setBounds(80, 130, 80, 50);
@@ -109,6 +93,21 @@ public class CollocateSpace {
 
 			labelList.get(0).setBounds(230, 10, 113, 39);
 			labelList.get(1).setBounds(230, 530, 82, 39);
+			ImageIcon buttonImage = new ImageIcon("./ButtonImage/Car3_r.png");
+			Image image = buttonImage.getImage().getScaledInstance(80, 40, Image.SCALE_SMOOTH);
+			buttonImage.setImage(image);
+
+			for (int i = 0; i < 16; i++) {
+				if (parkSpaces[i] == true) {
+					list.get(i).setText("");
+					list.get(i).setIcon(buttonImage);
+				} else {
+					list.get(i).setText(floor2SpaceName[i]);
+					list.get(i).setIcon(null);
+				}
+			}
+			labelList.get(2).setText("B2");
+
 		} else if (floor == 3) {
 			list.get(0).setBounds(80, 10, 50, 80);
 			list.get(1).setBounds(140, 10, 50, 80);
@@ -151,6 +150,7 @@ public class CollocateSpace {
 					list.get(i).setIcon(null);
 				}
 			}
+			labelList.get(2).setText("B3");
 		}
 	}
 }

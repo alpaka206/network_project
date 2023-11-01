@@ -18,34 +18,13 @@ import components.ParkingLotFrame;
 public class InCarFunc {
 	private String CarNum;
 
-	public void inCarDialog(ParkingLotFrame frame) {
+	public void inCarProcess(ParkSpaceButton btn, int space, Boolean[] parkSpace, ParkingLotFrame frame, int floor,
+		Boolean adminMode) {
+		if (adminMode) {
+			JOptionPane.showConfirmDialog(null, "Do you want to block?", "Block Dialog", JOptionPane.YES_NO_OPTION);
+			return;
+		}
 
-		JDialog dialog = new JDialog(frame, "차 번호 입력", true);
-		dialog.getContentPane().setLayout(new FlowLayout());
-		dialog.setSize(300, 100);
-
-		JTextField textField = new JTextField(20);
-		JButton registerButton = new JButton("등록");
-
-		registerButton.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				String inputText = textField.getText();
-				CarNum = inputText;
-				JOptionPane.showMessageDialog(frame, "차량이 등록되었습니다\n 등록된 차량번호: " + inputText);
-				dialog.dispose();
-				frame.setVisible(true);
-			}
-		});
-
-		dialog.getContentPane().add(textField);
-		dialog.getContentPane().add(registerButton);
-		dialog.setLocationRelativeTo(null);
-		dialog.setVisible(true);
-
-	}
-
-	public void inCarProcess(ParkSpaceButton btn, int space, Boolean[] parkSpace, ParkingLotFrame frame, int floor) {
 		if (parkSpace[space] == false) {
 
 			LocalDateTime time = LocalDateTime.now();
@@ -76,6 +55,33 @@ public class InCarFunc {
 			btn.setIcon(null);
 			//System.out.println(//"===outCar[" + floor1SpaceName[space] + "]=== \nCarNumber: " + carNum + "\nParking Time: " + time);
 		}
+	}
+
+	public void inCarDialog(ParkingLotFrame frame) {
+
+		JDialog dialog = new JDialog(frame, "차 번호 입력", true);
+		dialog.getContentPane().setLayout(new FlowLayout());
+		dialog.setSize(300, 100);
+
+		JTextField textField = new JTextField(20);
+		JButton registerButton = new JButton("등록");
+
+		registerButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				String inputText = textField.getText();
+				CarNum = inputText;
+				JOptionPane.showMessageDialog(frame, "차량이 등록되었습니다\n 등록된 차량번호: " + inputText);
+				dialog.dispose();
+				frame.setVisible(true);
+			}
+		});
+
+		dialog.getContentPane().add(textField);
+		dialog.getContentPane().add(registerButton);
+		dialog.setLocationRelativeTo(null);
+		dialog.setVisible(true);
+
 	}
 
 	private void outCarDialog(ParkingLotFrame frame) {
