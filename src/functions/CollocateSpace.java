@@ -19,7 +19,7 @@ public class CollocateSpace {
 		"L2", "L3", "L4"};
 
 	public void collocateSpace(List<ParkSpaceButton> list, List<BlockButton> blockList, List<JLabel> labelList,
-		int floor, Boolean[] parkSpaces) {
+		int floor, Boolean[] parkSpaces, Boolean[] adminBlockState) {
 		if (floor == 1) {
 			list.get(0).setBounds(80, 10, 50, 80);
 			list.get(1).setBounds(140, 10, 50, 80);
@@ -54,6 +54,13 @@ public class CollocateSpace {
 			buttonImage.setImage(image);
 
 			for (int i = 0; i < 16; i++) {
+
+				if (adminBlockState[i] == false)
+					list.get(i).setEnabled(false);
+
+				else if (adminBlockState[i] == true && list.get(i).isEnabled() == false)
+					list.get(i).setEnabled(true);
+
 				if (parkSpaces[i]) {
 					list.get(i).setIcon(buttonImage);
 					list.get(i).setText("");
@@ -98,6 +105,13 @@ public class CollocateSpace {
 			buttonImage.setImage(image);
 
 			for (int i = 0; i < 16; i++) {
+
+				if (adminBlockState[i] == false)
+					list.get(i).setEnabled(false);
+
+				else if (adminBlockState[i] == true && list.get(i).isEnabled() == false)
+					list.get(i).setEnabled(true);
+
 				if (parkSpaces[i] == true) {
 					list.get(i).setText("");
 					list.get(i).setIcon(buttonImage);
@@ -142,6 +156,13 @@ public class CollocateSpace {
 			buttonImage.setImage(image);
 
 			for (int i = 0; i < 16; i++) {
+
+				if (adminBlockState[i] == false)
+					list.get(i).setEnabled(false);
+
+				else if (adminBlockState[i] == true && list.get(i).isEnabled() == false)
+					list.get(i).setEnabled(true);
+
 				if (parkSpaces[i]) {
 					list.get(i).setIcon(buttonImage);
 					list.get(i).setText("");
@@ -153,4 +174,17 @@ public class CollocateSpace {
 			labelList.get(2).setText("B3");
 		}
 	}
+
+	public String getSpaceName(int floor, int space) {
+		String name;
+		if (floor == 1)
+			name = floor1SpaceName[space];
+		else if (floor == 2)
+			name = floor2SpaceName[space];
+		else {
+			name = floor1SpaceName[space];
+		}
+		return name;
+	}
+
 }

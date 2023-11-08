@@ -6,11 +6,10 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
-import javax.swing.border.LineBorder;
 
+import components.AdminButton;
 import components.BlockButton;
 import components.FloorRadio;
 import components.ParkSpaceButton;
@@ -23,10 +22,10 @@ import functions.InCarFunc;
 public class Client {
 
 	private ParkingLotFrame frame;
-	private Boolean[] parkSpace = new Boolean[16];
 	private Boolean adminMode = false;
 	public InCarFunc inCarFunc = new InCarFunc();
-	private Boolean[][] parkingLots = new Boolean[4][16];
+	private Boolean[][] parkingLots = new Boolean[4][16]; //false = not parked
+	private Boolean[][] adminBlockState = new Boolean[4][16]; //false = blocked
 	private int floor = 1;
 
 	public static void main(String[] args) {
@@ -47,19 +46,15 @@ public class Client {
 	}
 
 	private void parkSpaceInit() {
-		for (int i = 0; i < 16; i++) {
-			parkSpace[i] = false;
-			//System.out.println("parkSpace[" + i +"]" + parkSpace[i]);
+		for (int i = 0; i < 4; i++) {
+			for (int j = 0; j < 16; j++) {
+				parkingLots[i][j] = false;
+				adminBlockState[i][j] = true;
+			}
 		}
 	}
 
 	private void initialize() {
-
-		for (int i = 0; i < 4; i++) {
-			for (int j = 0; j < 16; j++) {
-				parkingLots[i][j] = false;
-			}
-		}
 
 		parkSpaceInit();
 
@@ -75,7 +70,7 @@ public class Client {
 		spaceList.add(btn0);
 		btn0.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarFunc.inCarProcess(btn0, 0, parkingLots[floor], frame, floor, adminMode);
+				inCarFunc.inCarProcess(btn0, 0, parkingLots[floor], adminBlockState[floor], frame, floor, adminMode);
 			}
 		});
 		btn0.setBounds(80, 10, 50, 80);
@@ -86,7 +81,7 @@ public class Client {
 		spaceList.add(btn1);
 		btn1.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarFunc.inCarProcess(btn1, 1, parkingLots[floor], frame, floor, adminMode);
+				inCarFunc.inCarProcess(btn1, 1, parkingLots[floor], adminBlockState[floor], frame, floor, adminMode);
 			}
 		});
 		btn1.setBounds(140, 10, 50, 80);
@@ -97,7 +92,7 @@ public class Client {
 		spaceList.add(btn2);
 		btn2.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarFunc.inCarProcess(btn2, 2, parkingLots[floor], frame, floor, adminMode);
+				inCarFunc.inCarProcess(btn2, 2, parkingLots[floor], adminBlockState[floor], frame, floor, adminMode);
 			}
 		});
 		btn2.setBounds(200, 10, 50, 80);
@@ -108,7 +103,7 @@ public class Client {
 		spaceList.add(btn3);
 		btn3.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarFunc.inCarProcess(btn3, 3, parkingLots[floor], frame, floor, adminMode);
+				inCarFunc.inCarProcess(btn3, 3, parkingLots[floor], adminBlockState[floor], frame, floor, adminMode);
 			}
 		});
 		btn3.setBounds(260, 10, 50, 80);
@@ -119,7 +114,7 @@ public class Client {
 		spaceList.add(btn4);
 		btn4.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarFunc.inCarProcess(btn4, 4, parkingLots[floor], frame, floor, adminMode);
+				inCarFunc.inCarProcess(btn4, 4, parkingLots[floor], adminBlockState[floor], frame, floor, adminMode);
 			}
 		});
 		btn4.setBounds(410, 10, 50, 80);
@@ -130,7 +125,7 @@ public class Client {
 		spaceList.add(btn5);
 		btn5.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarFunc.inCarProcess(btn5, 5, parkingLots[floor], frame, floor, adminMode);
+				inCarFunc.inCarProcess(btn5, 5, parkingLots[floor], adminBlockState[floor], frame, floor, adminMode);
 			}
 		});
 		btn5.setBounds(470, 10, 50, 80);
@@ -141,7 +136,7 @@ public class Client {
 		spaceList.add(btn6);
 		btn6.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarFunc.inCarProcess(btn6, 6, parkingLots[floor], frame, floor, adminMode);
+				inCarFunc.inCarProcess(btn6, 6, parkingLots[floor], adminBlockState[floor], frame, floor, adminMode);
 			}
 		});
 		btn6.setBounds(530, 10, 50, 80);
@@ -152,7 +147,7 @@ public class Client {
 		spaceList.add(btn7);
 		btn7.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarFunc.inCarProcess(btn7, 7, parkingLots[floor], frame, floor, adminMode);
+				inCarFunc.inCarProcess(btn7, 7, parkingLots[floor], adminBlockState[floor], frame, floor, adminMode);
 			}
 		});
 		btn7.setBounds(590, 10, 50, 80);
@@ -163,7 +158,7 @@ public class Client {
 		spaceList.add(btn8);
 		btn8.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarFunc.inCarProcess(btn8, 8, parkingLots[floor], frame, floor, adminMode);
+				inCarFunc.inCarProcess(btn8, 8, parkingLots[floor], adminBlockState[floor], frame, floor, adminMode);
 			}
 		});
 		btn8.setBounds(80, 260, 50, 80);
@@ -174,7 +169,7 @@ public class Client {
 		spaceList.add(btn9);
 		btn9.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarFunc.inCarProcess(btn9, 9, parkingLots[floor], frame, floor, adminMode);
+				inCarFunc.inCarProcess(btn9, 9, parkingLots[floor], adminBlockState[floor], frame, floor, adminMode);
 			}
 		});
 		btn9.setBounds(140, 260, 50, 80);
@@ -185,7 +180,7 @@ public class Client {
 		spaceList.add(btn10);
 		btn10.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarFunc.inCarProcess(btn10, 10, parkingLots[floor], frame, floor, adminMode);
+				inCarFunc.inCarProcess(btn10, 10, parkingLots[floor], adminBlockState[floor], frame, floor, adminMode);
 			}
 		});
 		btn10.setBounds(200, 260, 50, 80);
@@ -196,7 +191,7 @@ public class Client {
 		spaceList.add(btn11);
 		btn11.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarFunc.inCarProcess(btn11, 11, parkingLots[floor], frame, floor, adminMode);
+				inCarFunc.inCarProcess(btn11, 11, parkingLots[floor], adminBlockState[floor], frame, floor, adminMode);
 			}
 		});
 		btn11.setBounds(260, 260, 50, 80);
@@ -207,7 +202,7 @@ public class Client {
 		spaceList.add(btn12);
 		btn12.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarFunc.inCarProcess(btn12, 12, parkingLots[floor], frame, floor, adminMode);
+				inCarFunc.inCarProcess(btn12, 12, parkingLots[floor], adminBlockState[floor], frame, floor, adminMode);
 			}
 		});
 		btn12.setBounds(410, 260, 50, 80);
@@ -218,7 +213,7 @@ public class Client {
 		spaceList.add(btn13);
 		btn13.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarFunc.inCarProcess(btn13, 13, parkingLots[floor], frame, floor, adminMode);
+				inCarFunc.inCarProcess(btn13, 13, parkingLots[floor], adminBlockState[floor], frame, floor, adminMode);
 			}
 		});
 		btn13.setBounds(470, 260, 50, 80);
@@ -229,7 +224,7 @@ public class Client {
 		spaceList.add(btn14);
 		btn14.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarFunc.inCarProcess(btn14, 14, parkingLots[floor], frame, floor, adminMode);
+				inCarFunc.inCarProcess(btn14, 14, parkingLots[floor], adminBlockState[floor], frame, floor, adminMode);
 			}
 		});
 		btn14.setBounds(530, 260, 50, 80);
@@ -240,7 +235,7 @@ public class Client {
 		spaceList.add(btn15);
 		btn15.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				inCarFunc.inCarProcess(btn15, 15, parkingLots[floor], frame, floor, adminMode);
+				inCarFunc.inCarProcess(btn15, 15, parkingLots[floor], adminBlockState[floor], frame, floor, adminMode);
 			}
 		});
 		btn15.setBounds(590, 260, 50, 80);
@@ -251,7 +246,8 @@ public class Client {
 			public void actionPerformed(ActionEvent e) {
 				floor = 1;
 				CollocateSpace collocateSpace = new CollocateSpace();
-				collocateSpace.collocateSpace(spaceList, blockList, labelList, 1, parkingLots[floor]);
+				collocateSpace.collocateSpace(spaceList, blockList, labelList, 1, parkingLots[floor],
+					adminBlockState[floor]);
 			}
 		});
 		B1_btn.setBounds(800, 190, 121, 46);
@@ -263,7 +259,8 @@ public class Client {
 			public void actionPerformed(ActionEvent e) {
 				floor = 2;
 				CollocateSpace collocateSpace = new CollocateSpace();
-				collocateSpace.collocateSpace(spaceList, blockList, labelList, 2, parkingLots[floor]);
+				collocateSpace.collocateSpace(spaceList, blockList, labelList, 2, parkingLots[floor],
+					adminBlockState[floor]);
 			}
 		});
 		frame.getContentPane().add(B2_btn);
@@ -274,7 +271,8 @@ public class Client {
 			public void actionPerformed(ActionEvent e) {
 				floor = 3;
 				CollocateSpace collocateSpace = new CollocateSpace();
-				collocateSpace.collocateSpace(spaceList, blockList, labelList, 3, parkingLots[floor]);
+				collocateSpace.collocateSpace(spaceList, blockList, labelList, 3, parkingLots[floor],
+					adminBlockState[floor]);
 			}
 		});
 		frame.getContentPane().add(B3_btn);
@@ -352,25 +350,35 @@ public class Client {
 		frame.getContentPane().add(adminState);
 
 		//Administrator Login
-		JButton adminLogin = new JButton("Admin");
-		adminLogin.setForeground(new Color(255, 255, 255));
-		adminLogin.setBorder(new LineBorder(new Color(255, 255, 255), 4));
-		adminLogin.setBorderPainted(true);
-		adminLogin.setBackground(new Color(0, 0, 0));
+		AdminButton adminLogin = new AdminButton("Admin Login");
 		adminLogin.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				AdminFunc adminFunc = new AdminFunc();
-				adminMode = adminFunc.adminLogin();
-				if (adminMode)
-					adminState.setText("Admin Mode");
-				else
+				if (!adminMode) {
+					adminMode = adminFunc.adminLogin();
+					if (adminMode) {
+						adminState.setText("Admin Mode");
+						adminLogin.setText("Admin Logout");
+					}
+
+				} else {
+					adminMode = adminFunc.adminLogout();
+					adminLogin.setText("Admin Login");
 					adminState.setText("");
+				}
 			}
 		});
 		adminLogin.setBounds(800, 348, 100, 46);
 		frame.getContentPane().add(adminLogin);
 
+		AdminButton blockCancel = new AdminButton("블록 해제");
+		blockCancel.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {}
+		});
+		blockCancel.setBounds(912, 348, 100, 46);
+		frame.getContentPane().add(blockCancel);
+
 		CollocateSpace collocateSpace = new CollocateSpace();
-		collocateSpace.collocateSpace(spaceList, blockList, labelList, 1, parkingLots[floor]);
+		collocateSpace.collocateSpace(spaceList, blockList, labelList, 1, parkingLots[floor], adminBlockState[floor]);
 	}
 }

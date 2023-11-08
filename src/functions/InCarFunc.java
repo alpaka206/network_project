@@ -14,20 +14,45 @@ import javax.swing.JTextField;
 
 import components.ParkSpaceButton;
 import components.ParkingLotFrame;
+import network.InCar;
+import network.OutCar;
 
 public class InCarFunc {
-	private String CarNum;
+	private String carNum;
 
-	public void inCarProcess(ParkSpaceButton btn, int space, Boolean[] parkSpace, ParkingLotFrame frame, int floor,
+	public void inCarProcess(ParkSpaceButton btn, int space, Boolean[] parkSpace, Boolean[] adminBlockState,
+		ParkingLotFrame frame, int floor,
 		Boolean adminMode) {
+
 		if (adminMode) {
-			JOptionPane.showConfirmDialog(null, "Do you want to block?", "Block Dialog", JOptionPane.YES_NO_OPTION);
-			return;
+			if (btn.isEnabled()) {
+				if (parkSpace[space] == true) {
+					int option = JOptionPane.showConfirmDialog(null, "!!Car is already parked!!", "Block Dialog",
+						JOptionPane.DEFAULT_OPTION, JOptionPane.WARNING_MESSAGE);
+
+					return;
+				}
+				JOptionPane.showConfirmDialog(null, "Do you want to block?", "Block Dialog", JOptionPane.YES_NO_OPTION);
+				adminBlockState[space] = false;
+				btn.setEnabled(false);
+				return;
+			} else {
+				JOptionPane.showConfirmDialog(null, "Do you want to enable space?", "Block Dialog",
+					JOptionPane.YES_NO_OPTION);
+				adminBlockState[space] = true;
+				btn.setEnabled(true);
+				return;
+			}
 		}
 
 		if (parkSpace[space] == false) {
+			this.inCarDialog(frame);
 
 			LocalDateTime time = LocalDateTime.now();
+			InCar inCar = new InCar(time, carNum, floor, space);
+
+			inCar.sendRequestToServer();
+
 			ImageIcon buttonImage = new ImageIcon("./ButtonImage/Car3.png");
 			Image image = buttonImage.getImage().getScaledInstance(40, 80, Image.SCALE_SMOOTH);
 
@@ -40,17 +65,23 @@ public class InCarFunc {
 				buttonImage.setImage(image);
 			}
 
-			this.inCarDialog(frame);
 			parkSpace[space] = true;
 
 			btn.setIcon(buttonImage);
 			btn.setText("");
 
 			//System.out.println( "===inCar[" + floor1SpaceName[space] + "]=== \nCarNumber: " + carNum + "\nParking Time: " + time);
-		} else {
+		} else { //outCar process
+			outCarDialog(frame);
+			LocalDateTime time = LocalDateTime.now();
+			OutCar outCar = new OutCar(time, carNum, floor, space);
+			outCar.processOut();
+
 			//시간,요금 받아오기
 			parkSpace[space] = false;
-			outCarDialog(frame);
+			CollocateSpace collocateSpace = new CollocateSpace();
+			btn.setText(collocateSpace.getSpaceName(floor, space));
+
 			//		btn.setText(floor1SpaceName[space]);
 			btn.setIcon(null);
 			//System.out.println(//"===outCar[" + floor1SpaceName[space] + "]=== \nCarNumber: " + carNum + "\nParking Time: " + time);
@@ -70,7 +101,7 @@ public class InCarFunc {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				String inputText = textField.getText();
-				CarNum = inputText;
+				carNum = inputText;
 				JOptionPane.showMessageDialog(frame, "차량이 등록되었습니다\n 등록된 차량번호: " + inputText);
 				dialog.dispose();
 				frame.setVisible(true);

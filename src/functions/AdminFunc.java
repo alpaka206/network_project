@@ -15,8 +15,9 @@ import components.ParkSpaceButton;
 import components.ParkingLotFrame;
 
 public class AdminFunc {
-	public void adminBlock(Boolean[] parkingLots, Integer blockIndex, List<ParkSpaceButton> spaceList, int floor,
-		ParkingLotFrame frame) {
+
+	public void adminBlock(Boolean[] parkingLots, Boolean[] adminBlockState, Integer blockIndex,
+		List<ParkSpaceButton> spaceList, int floor, ParkingLotFrame frame) {
 		if (parkingLots[blockIndex])
 			JOptionPane.showMessageDialog(frame, "이미 주차된 공간입니다.");
 		else {
@@ -70,5 +71,10 @@ public class AdminFunc {
 
 		return (passwd.equals("network")) ? true : false;
 	}
+
+	public Boolean adminLogout() {
+		JOptionPane.showMessageDialog(null, "Logout!", "Information", JOptionPane.INFORMATION_MESSAGE);
+		return false;
+	};
 
 }
