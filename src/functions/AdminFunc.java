@@ -11,10 +11,18 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 
+import components.AdminButton;
 import components.ParkSpaceButton;
 import components.ParkingLotFrame;
 
 public class AdminFunc {
+
+	private String[][] spaceName = {
+		{},
+		{"A1", "A2", "A3", "A4", "B1", "B2", "B3", "B4", "C1", "C2", "C3", "C4", "D1", "D2", "D3", "D4"},
+		{"E1", "E2", "E3", "E4", "F1", "F2", "F3", "F4", "G1", "G2", "G3", "G4", "H1", "H2", "H3", "H4"},
+		{"I1", "I2", "I3", "I4", "J1", "J2", "J3", "J4", "K1", "K2", "K3", "K4", "L1", "L2", "L3", "L4"}
+	};
 
 	public void adminBlock(Boolean[] parkingLots, Boolean[] adminBlockState, Integer blockIndex,
 		List<ParkSpaceButton> spaceList, int floor, ParkingLotFrame frame) {
@@ -75,6 +83,23 @@ public class AdminFunc {
 	public Boolean adminLogout() {
 		JOptionPane.showMessageDialog(null, "Logout!", "Information", JOptionPane.INFORMATION_MESSAGE);
 		return false;
-	};
+	}
 
+	public void unBlockSpace(ParkingLotFrame frame, AdminButton btn, Boolean[][] adminBlockState,
+		List<ParkSpaceButton> spaceList) {
+
+		String input = JOptionPane.showInputDialog("Enter a string:");
+		for (int i = 1; i < 4; i++) {
+			for (int j = 0; j < 16; j++) {
+				if (spaceName[i][j].equals(input)) {
+					adminBlockState[i][j] = true;
+					JOptionPane.showMessageDialog(null, spaceName[i][j] + "에 다시 주차가 가능합니다", "Unblocked",
+						JOptionPane.INFORMATION_MESSAGE);
+					spaceList.get(j).setEnabled(true);
+					return;
+				}
+			}
+		}
+		JOptionPane.showMessageDialog(null, "알맞은 위치를 입력하세요 A1 ~ L4", "Failed", JOptionPane.WARNING_MESSAGE);
+	}
 }

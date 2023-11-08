@@ -26,6 +26,7 @@ public class Client {
 	public InCarFunc inCarFunc = new InCarFunc();
 	private Boolean[][] parkingLots = new Boolean[4][16]; //false = not parked
 	private Boolean[][] adminBlockState = new Boolean[4][16]; //false = blocked
+	private List<FloorRadio> radioList = new ArrayList<FloorRadio>();
 	private int floor = 1;
 
 	public static void main(String[] args) {
@@ -248,9 +249,11 @@ public class Client {
 				CollocateSpace collocateSpace = new CollocateSpace();
 				collocateSpace.collocateSpace(spaceList, blockList, labelList, 1, parkingLots[floor],
 					adminBlockState[floor]);
+				setRadioSelected(0);
 			}
 		});
 		B1_btn.setBounds(800, 190, 121, 46);
+		radioList.add(B1_btn);
 		frame.getContentPane().add(B1_btn);
 
 		FloorRadio B2_btn = new FloorRadio(" B2");
@@ -261,8 +264,10 @@ public class Client {
 				CollocateSpace collocateSpace = new CollocateSpace();
 				collocateSpace.collocateSpace(spaceList, blockList, labelList, 2, parkingLots[floor],
 					adminBlockState[floor]);
+				setRadioSelected(1);
 			}
 		});
+		radioList.add(B2_btn);
 		frame.getContentPane().add(B2_btn);
 
 		FloorRadio B3_btn = new FloorRadio(" B3");
@@ -273,8 +278,10 @@ public class Client {
 				CollocateSpace collocateSpace = new CollocateSpace();
 				collocateSpace.collocateSpace(spaceList, blockList, labelList, 3, parkingLots[floor],
 					adminBlockState[floor]);
+				setRadioSelected(2);
 			}
 		});
+		radioList.add(B3_btn);
 		frame.getContentPane().add(B3_btn);
 
 		BlockButton P_block = new BlockButton("P");
@@ -349,6 +356,16 @@ public class Client {
 		adminState.setBounds(800, 404, 183, 46);
 		frame.getContentPane().add(adminState);
 
+		AdminButton blockCancel = new AdminButton("블록 해제");
+		blockCancel.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				AdminFunc adminFunc = new AdminFunc();
+				adminFunc.unBlockSpace(frame, blockCancel, adminBlockState, spaceList);
+			}
+		});
+		blockCancel.setEnabled(false);
+		blockCancel.setBounds(912, 348, 100, 46);
+		frame.getContentPane().add(blockCancel);
 		//Administrator Login
 		AdminButton adminLogin = new AdminButton("Admin Login");
 		adminLogin.addActionListener(new ActionListener() {
@@ -357,6 +374,7 @@ public class Client {
 				if (!adminMode) {
 					adminMode = adminFunc.adminLogin();
 					if (adminMode) {
+						blockCancel.setEnabled(true);
 						adminState.setText("Admin Mode");
 						adminLogin.setText("Admin Logout");
 					}
@@ -365,20 +383,28 @@ public class Client {
 					adminMode = adminFunc.adminLogout();
 					adminLogin.setText("Admin Login");
 					adminState.setText("");
+					blockCancel.setEnabled(false);
 				}
 			}
 		});
 		adminLogin.setBounds(800, 348, 100, 46);
 		frame.getContentPane().add(adminLogin);
 
-		AdminButton blockCancel = new AdminButton("블록 해제");
-		blockCancel.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {}
-		});
-		blockCancel.setBounds(912, 348, 100, 46);
-		frame.getContentPane().add(blockCancel);
-
 		CollocateSpace collocateSpace = new CollocateSpace();
 		collocateSpace.collocateSpace(spaceList, blockList, labelList, 1, parkingLots[floor], adminBlockState[floor]);
+	}
+
+	public void setRadioSelected(int index) {
+		if (index == 0) {
+			radioList.get(1).setSelected(false);
+			radioList.get(2).setSelected(false);
+		} else if (index == 1) {
+			radioList.get(0).setSelected(false);
+			radioList.get(2).setSelected(false);
+		} else {
+			radioList.get(0).setSelected(false);
+			radioList.get(1).setSelected(false);
+		}
+
 	}
 }
