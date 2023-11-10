@@ -182,7 +182,7 @@ public class CollocateSpace {
 		else if (floor == 2)
 			name = floor2SpaceName[space];
 		else {
-			name = floor1SpaceName[space];
+			name = floor3SpaceName[space];
 		}
 		return name;
 	}

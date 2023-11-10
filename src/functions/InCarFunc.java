@@ -70,7 +70,6 @@ public class InCarFunc {
 			btn.setIcon(buttonImage);
 			btn.setText("");
 
-			//System.out.println( "===inCar[" + floor1SpaceName[space] + "]=== \nCarNumber: " + carNum + "\nParking Time: " + time);
 		} else { //outCar process
 			outCarDialog(frame);
 			LocalDateTime time = LocalDateTime.now();
@@ -81,10 +80,7 @@ public class InCarFunc {
 			parkSpace[space] = false;
 			CollocateSpace collocateSpace = new CollocateSpace();
 			btn.setText(collocateSpace.getSpaceName(floor, space));
-
-			//		btn.setText(floor1SpaceName[space]);
 			btn.setIcon(null);
-			//System.out.println(//"===outCar[" + floor1SpaceName[space] + "]=== \nCarNumber: " + carNum + "\nParking Time: " + time);
 		}
 	}
 
