@@ -328,25 +328,26 @@ public class Client {
 		frame.getContentPane().add(floorLabel);
 
 		//Parking State
-		List<JLabel> stateList = new ArrayList<JLabel>();
+		List<JLabel> stateList = new ArrayList<>();
 
 		//B1 State
 		StateLabel b1State = new StateLabel("B1: 여유");
 		b1State.setBounds(800, 84, 100, 15);
-		labelList.add(b1State);
+		stateList.add(b1State);
 		frame.getContentPane().add(b1State);
 
 		//B2 State
 		StateLabel b2State = new StateLabel("B2: 여유");
 		b2State.setBounds(800, 109, 100, 15);
-		labelList.add(b2State);
+		stateList.add(b2State);
 		frame.getContentPane().add(b2State);
 
 		//B3 State
 		StateLabel b3State = new StateLabel("B3: 여유");
 		b3State.setBounds(800, 134, 100, 15);
-		labelList.add(b3State);
+		stateList.add(b3State);
 		frame.getContentPane().add(b3State);
+
 
 		//Administrator State
 		JLabel adminState = new JLabel();
