@@ -2,7 +2,7 @@ package org.example;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.Arrays;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -15,8 +15,7 @@ import static org.example.Main.spotArr;
 import static org.example.RequestHandler.handleRequest;
 
 public class Main {
-    static String[] spotArr = {
-            "P1", "P2", "P3", "P4",
+    static String[] spotArr = {"P1", "P2", "P3", "P4",
             "J1", "J2", "J3", "J4",
             "H1", "H2", "H3", "H4",
             "F1", "F2", "F3", "F4"};
@@ -24,13 +23,26 @@ public class Main {
     static CarInfo[][] parking = new CarInfo[3][16];
 
     public static void main(String[] args) {
-        // 클라이언트로부터 받은 JSON 문자열
-//        String json = "{\"flag\":11,\"carNum\":\"12가 1234\",\"inCarTime\":\"2023-09-26T07:11:54\",\"spot\":\"1\"}";
-//        String json2 = "{\"flag\":12,\"outCarTime\":\"2023-09-26T07:11:54\",\"spot\":\"1\"}";
-//
-//        // 요청 처리
-//        handleRequest(json);
-//        handleRequest(json2);
+//        클라이언트로부터 받은 JSON 문자열
+//        String json = "{\"flag\":15,\"parkSpace\":\"1\"}";
+        String json = "{\"flag\":44}";
+
+        parking[0][1] = CarInfo.builder()
+                .carNum("12가 1234")
+                .inCartime(LocalDateTime.parse("2023-09-26T06:00:00"))
+                .parkSpace("1")
+                .floor(0)
+                .build();
+
+        parking[1][8] = CarInfo.builder()
+                .carNum("Admin")
+                .inCartime(LocalDateTime.parse("2023-09-26T06:00:00"))
+                .parkSpace("1")
+                .floor(0)
+                .build();
+
+        // 요청 처리
+        handleRequest(json);
     }
 
 //        int port = 8080; // 원하는 포트 번호로 변경
@@ -48,12 +60,15 @@ public class Main {
 }
 
 @Getter
+@Builder
 @AllArgsConstructor
 class CarInfo {
     private String carNum;
-    private LocalDateTime inCarTime;
-    private String spot;
+    private LocalDateTime inCartime;
+    private String parkSpace; // P4
+    private int floor;
 }
+
 
 @Getter
 @Builder
@@ -65,6 +80,7 @@ class InCarRequest {
     private String spotString;
     private int spotInt;
 }
+
 
 @Getter
 @Builder
@@ -78,9 +94,44 @@ class OutCarRequest {
 @Getter
 @Builder
 @AllArgsConstructor
-class ChangeParkingRequest {
-    private int floor; // 몇층의
-    private int spotInt; // 주차 자리
+class SearchCarRequest {
+    private String carNum;
+    private LocalDateTime nowTime;
+    private int floor;
+}
+
+@Getter
+@Builder
+@AllArgsConstructor
+class Response {
+    private Boolean isSuccess;
+    private Object message;
+}
+
+@Getter
+@Builder
+@AllArgsConstructor
+class OutCarResponse {
+    private int price;
+    private String carNum;
+}
+
+@Getter
+@Builder
+@AllArgsConstructor
+class SearchCarResponse {
+    private int price;
+    private String useTime;
+    private int parkSpace;
+    private int floor;
+}
+
+@Getter
+@Builder
+@AllArgsConstructor
+class AdminRequest {
+    private int floor;
+    private int parkSpace;
 }
 
 class JsonMapper {
@@ -103,70 +154,126 @@ class JsonMapper {
                 .build(); // 객체가 생성됨.
     }
     // 3. json -> 조회
-
-    // 4. json -> 동기화
-
-    // 5. json -> 관리자모드
-    public static ChangeParkingRequest jsonToChangeParkingRequest(JsonNode json, int floor) {
-        return ChangeParkingRequest.builder()
+    public static SearchCarRequest jsonToSearchCarRequest(JsonNode json) {
+        return SearchCarRequest.builder()
+                .carNum(json.get("carNum").asText())
+                .nowTime(LocalDateTime.parse/*문자열 -> 시간 객체타입으로 변환*/(json.get("nowTime").asText()/* json 시간 문자열을 가져옴 */))
+                .build();
+    }
+    public static AdminRequest jsonToAdminRequest(JsonNode json, int floor) {
+        return AdminRequest.builder()
                 .floor(floor)
-                .spotInt(json.get("parkSpace").asInt())
+                .parkSpace(json.get("parkSpace").asInt())
                 .build();
     }
 }
 
 // 입차, 출차, 조회 처리하는 클래스
 class Process {
-    private static Optional<CarInfo> checkParking(int floor, int spotInt) {
-        return Optional.of(parking[floor][spotInt]);
+
+    // 차량 조회 메서드
+    private static CarInfo searchCarInfo(String carNum) {
+        for (int i = 0; i < parking.length; i++) {
+            for (int j = 0; j < parking[i].length; j++) {
+                CarInfo carInfo = parking[i][j];
+                if (carInfo != null && carInfo.getCarNum().equals(carNum)) {
+                    return carInfo;
+                }
+            }
+        }
+        return null;
     }
 
-    public static void inCarProcess(InCarRequest inCarRequest) throws RuntimeException {
-        int floor = inCarRequest.getFloor();
-        int spotInt = inCarRequest.getSpotInt();
-        checkParking(floor, spotInt).ifPresent(carInfo -> {
-            throw new RuntimeException("해당 자리에 주차된 차량 " + carInfo.getCarNum() + "이 이미 존재합니다.");
-        });
-
-        parking[inCarRequest.getFloor() - 1][inCarRequest.getSpotInt()] =
-                new CarInfo(inCarRequest.getCarNum(), inCarRequest.getInCarTime(), inCarRequest.getSpotString());
+    private static long calculateTime(LocalDateTime inCarTime, LocalDateTime time/*out, 그냥조회*/) {
+        Duration duration = Duration.between(inCarTime, time);
+        return duration.toMinutes();
     }
 
-    public static void outCarProcess(OutCarRequest outCarRequest) throws RuntimeException {
-        int floor = outCarRequest.getFloor();
-        int spotInt = outCarRequest.getSpotInt();
-        CarInfo carInfo = checkParking(floor, spotInt).orElseThrow(
-                () -> new RuntimeException("해당 자리에 주차한 차량이 존재하지 않습니다."));
+    public static void inCarProcess(InCarRequest inCarRequest) {
+        if(searchCarInfo(inCarRequest.getCarNum()) != null) {
+            throw new RuntimeException("요청한 자리에 주차된 차량이 있습니다.");
+        }
 
-        Duration duration = Duration.between(outCarRequest.getOutCarTime(), carInfo.getInCarTime());
-        parking[outCarRequest.getFloor() - 1][outCarRequest.getSpotInt()] = null;
+        parking[inCarRequest.getFloor()][inCarRequest.getSpotInt()] =
+                CarInfo.builder()
+                        .carNum(inCarRequest.getCarNum())
+                        .inCartime(inCarRequest.getInCarTime())
+                        .parkSpace(inCarRequest.getSpotString())
+                        .floor(inCarRequest.getFloor())
+                        .build();
     }
 
-//    public static void searchProcess() {
-//        try {
-//            // 주차 공간 배열을 순회 > carNum 찾음
-//            for (int spotInt = 0; spotInt < parking[floor].length; spotInt++) {
-//                CarInfo carInfo = parking[floor][spotInt];
-//
-//                if (carInfo != null && carInfo.getCarNum().equals(carNumToFind)) {
-//                    // 차량을 찾았으므로 해당 주차 공간의 차량 정보를 제거. 즉, 출차처리
-//                    parking[floor][spotInt] = null;
-//
-//                    // TODO: 출차시간 처리하는 로직 넣기?
-//
-//                    return; // 차량을 찾았으면 반복문을 빠져나옴
-//                }
-//            }
-//        }
-//        // 차량을 찾지 못한 경우
-//        throw new RuntimeException("주차된 차량을 찾을 수 없습니다.");
-//        catch (RuntimeException e) {
-//            e.printStackTrace(); // 예외처리
-//        }
-//
-//    }
+    public static void outCarProcess(OutCarRequest outCarRequest) {
+        try {
 
-    public static
+            int floor = outCarRequest.getFloor();
+            int parkSpace = outCarRequest.getSpotInt();
+
+            if(parking[floor][parkSpace]==null) throw new RuntimeException("해당 자리에 주차된 차량이 없습니다");
+            long time = calculateTime(parking[floor][parkSpace].getInCartime(), outCarRequest.getOutCarTime());
+
+            System.out.println("price: " + (time/15)*500 + "\n" + time/60 +"시간 " + time%60 + "분이 지났습니다.");
+            parking[outCarRequest.getFloor()][outCarRequest.getSpotInt()] = null;
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public static void searchCarProcess(SearchCarRequest searchCarRequest) {
+        try {
+
+            CarInfo findCarInfo = searchCarInfo(searchCarRequest.getCarNum());
+            if(findCarInfo==null) throw new RuntimeException("해당 차량번호가 존재하지 않습니다.");
+
+            long time = calculateTime(findCarInfo.getInCartime(), searchCarRequest.getNowTime());
+            System.out.println("price: " + (time/15)*500 + "\n" + time/60 +"시간 " + time%60 + "분이 지났습니다.");
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public static void adminProcess(AdminRequest adminRequest){
+        try{
+            int floor = adminRequest.getFloor();
+            int parkSpace = adminRequest.getParkSpace();
+
+            if (parking[floor][parkSpace] == null) {
+                parking[floor][parkSpace] = CarInfo.builder()
+                        .carNum("Admin")
+                        .inCartime(null)
+                        .parkSpace(null)
+                        .floor(floor) // 여기에 floor 값을 설정해야 합니다.
+                        .build();
+            } else if(parking[floor][parkSpace].getCarNum().equals("Admin")){
+                parking[floor][parkSpace] = null;
+            } else {
+                throw new RuntimeException("차량이 주차된 자리입니다.");
+            }
+        }
+        catch(Exception e){
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public static void synchronize() {
+        int[][] response = new int[3][16];
+
+        for(int i=0; i<parking.length; i++) {
+            for(int j=0; j<parking[i].length; j++) {
+                if(parking[i][j]==null) {
+                    response[i][j] = 0;
+                } else if (parking[i][j].getCarNum() == "Admin") {
+                    response[i][j] = 2;
+                } else {
+                    response[i][j] = 1;
+                }
+            }
+        }
+
+        System.out.println(Arrays.deepToString(response));
+    }
 
 }
 
@@ -195,17 +302,19 @@ class RequestHandler {
                     break;
                 case 3:
                     // 조회 처리
+                    SearchCarRequest searchCarRequest = JsonMapper.jsonToSearchCarRequest(json);
+                    Process.searchCarProcess(searchCarRequest);
                     break;
                 case 4:
-                    // 동기화
+                    Process.synchronize();
                     break;
                 case 5:
-                    // 관리자모드
-                    ChangeParkingRequest changeParkingRequest = JsonMapper.jsonToChangeParkingRequest(json, floor);
-                    Process.changeParkingProcess(changeParkingRequest);
+                    AdminRequest adminRequest = JsonMapper.jsonToAdminRequest(json, floor);
+                    Process.adminProcess(adminRequest);
                     break;
                 default:
-                    throw new RuntimeException("명령을 잘못 입력하셨습니다.");
+                    // 잘못된 action 값 처리
+                    break;
             }
         } catch (Exception e) {
             e.printStackTrace();
