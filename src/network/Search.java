@@ -25,8 +25,8 @@ public class Search {
 
 	            // Header 생성
 	        	byte[] header = new byte[9];
-	            int flag = 33;
-	            ByteBuffer.wrap(header, 0, 4).putInt(flag);
+	            String flag = "33";
+	            ByteBuffer.wrap(header, 0, 4).put(flag.getBytes());
 	            int bodySize = 20; // 16 (LocalDateTime) + 4 (parkSpace)
 	            ByteBuffer.wrap(header, 4, 4).putInt(bodySize);
 

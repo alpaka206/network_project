@@ -28,7 +28,7 @@ public class InCar {
     	         DataOutputStream out = new DataOutputStream(socket.getOutputStream());
     	         DataInputStream in = new DataInputStream(socket.getInputStream())) {
 
-        	String flag = Integer.toString(floor);
+        	String flag = Integer.toString(floor*10 +1);
 
             // header
 //            byte[] header = new byte[8];
@@ -37,17 +37,18 @@ public class InCar {
         	ByteBuffer.wrap(header, 0, 4).put(flag.getBytes());
             int bodySize = 38; // 18 + 16 + 4
             ByteBuffer.wrap(header, 4, 4).putInt(bodySize);
-            out.write(header);
+//            out.write(header);
 
             // body
             byte[] body = new byte[bodySize];
             ByteBuffer.wrap(body, 0, 18).put(carNum.getBytes());
             ByteBuffer.wrap(body, 18, 16).putLong(time.toEpochSecond(null));
             ByteBuffer.wrap(body, 34, 4).putInt(parkSpace);
-            out.write(body);
+//            out.write(body);
             byte[] send = new byte[bodySize + 8];
             System.arraycopy(header, 0, send, 0, 8);
             System.arraycopy(body, 0, send, 8, bodySize);
+            out.write(send);
             
 //            String result = reader.readLine();
 //            System.out.println(result);
