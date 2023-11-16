@@ -18,18 +18,45 @@ import components.StateLabel;
 import functions.AdminFunc;
 import functions.CollocateSpace;
 import functions.InCarFunc;
+import network.Synchronize;
 
 public class Client {
 
 	private ParkingLotFrame frame;
-	private Boolean adminMode = false;
 	public InCarFunc inCarFunc = new InCarFunc();
+
 	private Boolean[][] parkingLots = new Boolean[4][16]; //false = not parked
 	private Boolean[][] adminBlockState = new Boolean[4][16]; //false = blocked
+
 	private List<FloorRadio> radioList = new ArrayList<FloorRadio>();
+	private List<ParkSpaceButton> spaceList = new ArrayList();
+	private List<BlockButton> blockList = new ArrayList();
+	private List<JLabel> labelList = new ArrayList();
+
 	private int floor = 1;
+	private Boolean adminMode = false;
 
 	public static void main(String[] args) {
+
+		Thread synchronize = new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				Synchronize synchronize = new Synchronize(1);
+				while (true) {
+					try {
+						Thread.sleep(1000);
+						System.out.println("hello");
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+
+			}
+		});
+		synchronize.start();
+
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
@@ -60,9 +87,6 @@ public class Client {
 		parkSpaceInit();
 
 		//0~15 = 주차 버튼
-		List<ParkSpaceButton> spaceList = new ArrayList();
-		List<BlockButton> blockList = new ArrayList();
-		List<JLabel> labelList = new ArrayList();
 
 		frame = new ParkingLotFrame();
 
@@ -347,7 +371,6 @@ public class Client {
 		b3State.setBounds(800, 134, 100, 15);
 		stateList.add(b3State);
 		frame.getContentPane().add(b3State);
-
 
 		//Administrator State
 		JLabel adminState = new JLabel();

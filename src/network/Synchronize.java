@@ -31,22 +31,22 @@ public class Synchronize {
 
 			byte[] receiveData = new byte[100];
 
-			while (true) {
-				DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
-				serverSocket.receive(receivePacket);
-				flag = ByteBuffer.wrap(Arrays.copyOfRange(receivePacket.getData(), 0, 4)).getInt();
-				len = ByteBuffer.wrap(Arrays.copyOfRange(receivePacket.getData(), 4, 8)).getInt();
+			DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+			serverSocket.receive(receivePacket);
+			flag = ByteBuffer.wrap(Arrays.copyOfRange(receivePacket.getData(), 0, 4)).getInt();
+			len = ByteBuffer.wrap(Arrays.copyOfRange(receivePacket.getData(), 4, 8)).getInt();
 
-				for (int i = 1; i < 4; i++) {
-					for (int j = 0; j < 16; j++) {
-						int n = ByteBuffer.wrap(Arrays.copyOfRange(receivePacket.getData(), 8 + i * 4, 12 + 4 * i))
-							.getInt();
+			for (int i = 1; i < 4; i++) {
+				for (int j = 0; j < 16; j++) {
+					int n = ByteBuffer.wrap(Arrays.copyOfRange(receivePacket.getData(), 8 + i * 4, 12 + 4 * i))
+						.getInt();
 
-						if (n == 1)
-							parkingLots[i][j] = true;
-						else if (n == 2)
-							adminBlockState[i][j] = false;
-					}
+					if (n == 1)
+						parkingLots[i][j] = true;
+					else if (n == 2)
+						adminBlockState[i][j] = false;
+					else
+						parkingLots[i][j] = false;
 				}
 			}
 		} catch (Exception e) {
