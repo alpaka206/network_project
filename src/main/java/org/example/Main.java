@@ -7,10 +7,7 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.Scanner;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,14 +24,10 @@ public class Main {
     static CarInfo[][] parking = new CarInfo[3][16];
 
     public static void main(String[] args) {
-//        BufferedReader in = null;
-//        PrintWriter out = null;
 
         ServerSocket serverSocket = null;
         Socket clientSocket = null;
-        Scanner scanner = new Scanner(System.in);
-
-        int port = 8080; // 원하는 포트 번호로 변경
+        int port = 54254; // 원하는 포트 번호로 변경
 
         DataInputStream din = null;
         DataOutputStream dout = null;
@@ -49,71 +42,25 @@ public class Main {
             din = new DataInputStream(clientSocket.getInputStream());
             dout = new DataOutputStream(clientSocket.getOutputStream());
 
-            while(true) {
-                RequestHandler.handleRequest(din);
-            }
+            // 1. request byte[] 배열
+            byte[] request = new byte[64];
+            din.readFully(request);
+
+            // 2. flag와 bodySize를 추출한다.
+            String flag = new String(Arrays.copyOfRange(request, 0, 4));
+            int bodySize = ByteBuffer.wrap(request, 4, 4).getInt();
+
+            // 3. body를 추출한다.
+            byte[] body = new byte[bodySize];
+            System.arraycopy(request, 8, body, 0, bodySize);
+
+            // 4. flag와 body를 넘긴다.
+            RequestHandler.handleRequest(flag, body);
+
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
-
-//        try {
-//            serverSocket = new ServerSocket(port);
-//            System.out.println("서버가 " + port + " 포트에서 대기 중...");
-//
-//            clientSocket = serverSocket.accept();
-//            System.out.println("클라이언트 연결됨.");
-//
-//            // 연결된 소켓의 input 스트림을 얻는다.
-//            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-//            out = new PrintWriter(clientSocket.getOutputStream());
-//
-//            while (true) {
-//                String inputMessage = in.readLine();
-//                if("quit".equals(inputMessage)) break;
-//
-//                System.out.println("From Client >> " + inputMessage);
-//                System.out.println("전송하기 >> ");
-//
-//                String outputMessage = scanner.nextLine();
-//                out.println(outputMessage);
-//                out.flush(); // flushes the stream
-//                if("quit".equals(inputMessage)) break;
-//
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } finally {
-//            try {
-//                scanner.close();
-//                clientSocket.close();
-//                serverSocket.close();
-//                System.out.println("연결종료");
-//            } catch (IOException e) {
-//                System.out.println(e.getMessage());
-//            }
-//        }
-
-
-//        요청 처리
-//        handleRequest(json);
     }
-//        클라이언트로부터 받은 JSON 문자열
-//        String json = "{\"flag\":15,\"parkSpace\":\"1\"}";
-//        String json = "{\"flag\":44}";
-
-//        parking[0][1] = CarInfo.builder()
-//                .carNum("12가 1234")
-//                .inCartime(LocalDateTime.parse("2023-09-26T06:00:00"))
-//                .parkSpace("1")
-//                .floor(0)
-//                .build();
-//
-//        parking[1][8] = CarInfo.builder()
-//                .carNum("Admin")
-//                .inCartime(LocalDateTime.parse("2023-09-26T06:00:00"))
-//                .parkSpace("1")
-//                .floor(0)
-//                .build();
 }
 
 @Getter
@@ -196,7 +143,7 @@ class ByteMapper {
     public static InCarRequest byteToInCarRequest(byte[] body, int floor) {
 
         String carNum = new String(Arrays.copyOfRange(body, 0, 18));
-        String inCarTime = new String(Arrays.copyOfRange(body, 18, 22));
+        String inCarTime = new String(Arrays.copyOfRange(body, 18, 18+22));
         int parkSpace = ByteBuffer.wrap(body, 40, 4).getInt();
 
         return InCarRequest.builder()
@@ -225,7 +172,7 @@ class ByteMapper {
     public static SearchCarRequest byteToSearchCarRequest(byte[] body) {
 
         String nowTime = new String(Arrays.copyOfRange(body, 0, 22));
-        String carNum = new String(Arrays.copyOfRange(body, 22, 4));
+        String carNum = new String(Arrays.copyOfRange(body, 22, 22+4));
 
         return SearchCarRequest.builder()
                 .carNum(carNum)
@@ -354,25 +301,13 @@ class Process {
 }
 
 class RequestHandler {
-    public static void handleRequest(DataInputStream din) {
+    public static void handleRequest(String flag, byte[] body) {
         try {
-            // 1. header에서 flag와 bodysize를 읽는다.
-            byte[] header = new byte[8];
-            din.readFully(header, 0, 8);
-
-            String flag = new String(Arrays.copyOfRange(header, 0, 4));
-            int bodySize = ByteBuffer.wrap(header, 4, 4).getInt();
-
-            System.out.println("flag: "+ flag + ", bodySize: "+ bodySize);
-
+            // 1. flag에서 floor와 action을 얻는다.
             int floor = Character.getNumericValue(flag.indexOf(0));
             int action = Character.getNumericValue(flag.indexOf(1));
 
-            // 2. bodySize 만큼 body를 읽는다.
-            byte[] body = new byte[bodySize];
-            din.readFully(body, 8, bodySize);
-
-            // 3. action에 따라 body byte[] 배열을 알맞은 객체로 변환한다.
+            // 2. action에 따라 body byte[] 배열을 알맞은 객체로 변환한다.
             switch (action) {
                 case 1:
                     // 입차 처리
