@@ -14,6 +14,7 @@ import javax.swing.JTextField;
 
 import components.ParkSpaceButton;
 import components.ParkingLotFrame;
+import network.Admin;
 import network.InCar;
 import network.OutCar;
 
@@ -24,6 +25,8 @@ public class InCarFunc {
 		ParkingLotFrame frame, int floor,
 		Boolean adminMode) {
 
+		Admin admin = new Admin(floor, space);
+
 		if (adminMode) {
 			if (btn.isEnabled()) {
 				if (parkSpace[space] == true) {
@@ -33,12 +36,15 @@ public class InCarFunc {
 					return;
 				}
 				JOptionPane.showConfirmDialog(null, "Do you want to block?", "Block Dialog", JOptionPane.YES_NO_OPTION);
+				///asdf
+				admin.sendRequestToServer();
 				adminBlockState[space] = false;
 				btn.setEnabled(false);
 				return;
 			} else {
 				JOptionPane.showConfirmDialog(null, "Do you want to enable space?", "Block Dialog",
 					JOptionPane.YES_NO_OPTION);
+				admin.sendRequestToServer();
 				adminBlockState[space] = true;
 				btn.setEnabled(true);
 				return;

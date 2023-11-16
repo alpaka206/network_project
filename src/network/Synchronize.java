@@ -10,18 +10,18 @@ public class Synchronize {
 	private int floor;
 	private int receiveArray[][] = new int[4][16];
 
-	private Boolean[][] parkingLots = new Boolean[4][16];
-	private Boolean[][] adminBlockState = new Boolean[4][16];
+	//private Boolean[][] parkingLots = new Boolean[4][16];
+	//private Boolean[][] adminBlockState = new Boolean[4][16];
 
 	public Synchronize(int floor) {
 		this.floor = floor;
 
-		for (int i = 0; i < 4; i++) {
+		/*for (int i = 0; i < 4; i++) {
 			for (int j = 0; j < 16; j++) {
 				parkingLots[i][j] = false;
 				adminBlockState[i][j] = true;
 			}
-		}
+		}*/
 	}
 
 	public void receiveCurrentState(Boolean[][] parkingLots, Boolean[][] adminBlockState) {

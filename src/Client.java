@@ -18,6 +18,7 @@ import components.StateLabel;
 import functions.AdminFunc;
 import functions.CollocateSpace;
 import functions.InCarFunc;
+import functions.SearchFunc;
 import functions.UpdateParkingStateFunc;
 import network.Synchronize;
 
@@ -414,6 +415,18 @@ public class Client {
 		});
 		adminLogin.setBounds(800, 348, 100, 46);
 		frame.getContentPane().add(adminLogin);
+
+		AdminButton Search = new AdminButton("Admin Login");
+		Search.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				SearchFunc searchFunc = new SearchFunc();
+				searchFunc.searchCar();
+			}
+		});
+		Search.setForeground(new Color(0, 204, 255));
+		Search.setText("Find Car");
+		Search.setBounds(912, 78, 100, 46);
+		frame.getContentPane().add(Search);
 
 		CollocateSpace collocateSpace = new CollocateSpace();
 		collocateSpace.collocateSpace(spaceList, blockList, labelList, 1, parkingLots[floor], adminBlockState[floor]);
