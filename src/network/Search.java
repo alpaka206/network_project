@@ -59,8 +59,13 @@ public class Search {
 	            int usetime = ByteBuffer.wrap(response, 4, 4).getInt();
 	            int parkspace = ByteBuffer.wrap(response, 8, 4).getInt();
 	            int floor = ByteBuffer.wrap(response, 12, 4).getInt();
+
+	            int hours = usetime / 60;
+	            int minutes = usetime % 60;
+	            String formattedUseTime = hours + "시간 " + minutes + "분";
+
 	            // 결과 문자열 생성
-	            result = price + "/" + carNum;
+	            result = "가격: " + price + "<br>사용시간: " + formattedUseTime + "<br>주차 자리: " + parkspace + "<br>층수: " + floor;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
