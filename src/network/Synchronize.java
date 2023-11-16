@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class Synchronize {
+	private NetworkSettings network = new NetworkSettings();
 	private int floor;
 	private int receiveArray[][] = new int[4][16];
 
@@ -25,16 +26,15 @@ public class Synchronize {
 
 	public void receiveCurrentState(Boolean[][] parkingLots, Boolean[][] adminBlockState) {
 		try {
-			int port = 8080; // 포트 번호 설정
-			int flag, len;
-			DatagramSocket serverSocket = new DatagramSocket(port);
+			//int flag, len;
+			DatagramSocket serverSocket = new DatagramSocket(network.portNum);
 
 			byte[] receiveData = new byte[100];
 
 			DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 			serverSocket.receive(receivePacket);
-			flag = ByteBuffer.wrap(Arrays.copyOfRange(receivePacket.getData(), 0, 4)).getInt();
-			len = ByteBuffer.wrap(Arrays.copyOfRange(receivePacket.getData(), 4, 8)).getInt();
+			//flag = ByteBuffer.wrap(Arrays.copyOfRange(receivePacket.getData(), 0, 4)).getInt();
+			//len = ByteBuffer.wrap(Arrays.copyOfRange(receivePacket.getData(), 4, 8)).getInt();
 
 			for (int i = 1; i < 4; i++) {
 				for (int j = 0; j < 16; j++) {

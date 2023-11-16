@@ -18,6 +18,7 @@ import components.StateLabel;
 import functions.AdminFunc;
 import functions.CollocateSpace;
 import functions.InCarFunc;
+import functions.UpdateParkingStateFunc;
 import network.Synchronize;
 
 public class Client {
@@ -25,13 +26,13 @@ public class Client {
 	private ParkingLotFrame frame;
 	public InCarFunc inCarFunc = new InCarFunc();
 
-	private Boolean[][] parkingLots = new Boolean[4][16]; //false = not parked
-	private Boolean[][] adminBlockState = new Boolean[4][16]; //false = blocked
+	private static Boolean[][] parkingLots = new Boolean[4][16]; //false = not parked
+	private static Boolean[][] adminBlockState = new Boolean[4][16]; //false = blocked
 
 	private List<FloorRadio> radioList = new ArrayList<FloorRadio>();
 	private List<ParkSpaceButton> spaceList = new ArrayList();
 	private List<BlockButton> blockList = new ArrayList();
-	private List<JLabel> labelList = new ArrayList();
+	private static List<JLabel> labelList = new ArrayList();
 
 	private int floor = 1;
 	private Boolean adminMode = false;
@@ -43,16 +44,12 @@ public class Client {
 			@Override
 			public void run() {
 				Synchronize synchronize = new Synchronize(1);
+				UpdateParkingStateFunc u = new UpdateParkingStateFunc();
 				while (true) {
-					try {
-						Thread.sleep(1000);
-						System.out.println("hello");
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
+					synchronize.receiveCurrentState(parkingLots, adminBlockState);
+					u.updateParkingStateLabels(labelList, parkingLots);
+					System.out.println("[Synchronized]");
 				}
-
 			}
 		});
 		synchronize.start();
@@ -71,6 +68,10 @@ public class Client {
 
 	public Client() {
 		initialize();
+	}
+
+	private List<JLabel> getLabel() {
+		return this.labelList;
 	}
 
 	private void parkSpaceInit() {
