@@ -1,8 +1,13 @@
 package org.example;
 
+import java.io.*;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Scanner;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -12,7 +17,6 @@ import lombok.Getter;
 
 import static org.example.Main.parking;
 import static org.example.Main.spotArr;
-import static org.example.RequestHandler.handleRequest;
 
 public class Main {
     static String[] spotArr = {"P1", "P2", "P3", "P4",
@@ -23,40 +27,93 @@ public class Main {
     static CarInfo[][] parking = new CarInfo[3][16];
 
     public static void main(String[] args) {
-//        클라이언트로부터 받은 JSON 문자열
-//        String json = "{\"flag\":15,\"parkSpace\":\"1\"}";
-        String json = "{\"flag\":44}";
+//        BufferedReader in = null;
+//        PrintWriter out = null;
 
-        parking[0][1] = CarInfo.builder()
-                .carNum("12가 1234")
-                .inCartime(LocalDateTime.parse("2023-09-26T06:00:00"))
-                .parkSpace("1")
-                .floor(0)
-                .build();
+        ServerSocket serverSocket = null;
+        Socket clientSocket = null;
+        Scanner scanner = new Scanner(System.in);
 
-        parking[1][8] = CarInfo.builder()
-                .carNum("Admin")
-                .inCartime(LocalDateTime.parse("2023-09-26T06:00:00"))
-                .parkSpace("1")
-                .floor(0)
-                .build();
+        int port = 8080; // 원하는 포트 번호로 변경
 
-        // 요청 처리
-        handleRequest(json);
-    }
+        DataInputStream din = null;
+        DataOutputStream dout = null;
 
-//        int port = 8080; // 원하는 포트 번호로 변경
+        try {
+            serverSocket = new ServerSocket(port);
+            System.out.println("서버가 " + port + " 포트에서 대기 중...");
+
+            clientSocket = serverSocket.accept();
+            System.out.println("클라이언트 연결됨.");
+
+            din = new DataInputStream(clientSocket.getInputStream());
+            dout = new DataOutputStream(clientSocket.getOutputStream());
+
+            while(true) {
+                RequestHandler.handleRequest(din);
+            }
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+
 //        try {
-//            ServerSocket serverSocket = new ServerSocket(port);
+//            serverSocket = new ServerSocket(port);
 //            System.out.println("서버가 " + port + " 포트에서 대기 중...");
 //
+//            clientSocket = serverSocket.accept();
+//            System.out.println("클라이언트 연결됨.");
+//
+//            // 연결된 소켓의 input 스트림을 얻는다.
+//            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+//            out = new PrintWriter(clientSocket.getOutputStream());
+//
 //            while (true) {
-//                Socket clientSocket = serverSocket.accept();
-//                 클라이언트 요청을 처리하는 스레드를 시작하거나, 핸들러 함수를 호출하는 방식으로 진행
+//                String inputMessage = in.readLine();
+//                if("quit".equals(inputMessage)) break;
+//
+//                System.out.println("From Client >> " + inputMessage);
+//                System.out.println("전송하기 >> ");
+//
+//                String outputMessage = scanner.nextLine();
+//                out.println(outputMessage);
+//                out.flush(); // flushes the stream
+//                if("quit".equals(inputMessage)) break;
+//
 //            }
 //        } catch (IOException e) {
 //            e.printStackTrace();
+//        } finally {
+//            try {
+//                scanner.close();
+//                clientSocket.close();
+//                serverSocket.close();
+//                System.out.println("연결종료");
+//            } catch (IOException e) {
+//                System.out.println(e.getMessage());
+//            }
 //        }
+
+
+//        요청 처리
+//        handleRequest(json);
+    }
+//        클라이언트로부터 받은 JSON 문자열
+//        String json = "{\"flag\":15,\"parkSpace\":\"1\"}";
+//        String json = "{\"flag\":44}";
+
+//        parking[0][1] = CarInfo.builder()
+//                .carNum("12가 1234")
+//                .inCartime(LocalDateTime.parse("2023-09-26T06:00:00"))
+//                .parkSpace("1")
+//                .floor(0)
+//                .build();
+//
+//        parking[1][8] = CarInfo.builder()
+//                .carNum("Admin")
+//                .inCartime(LocalDateTime.parse("2023-09-26T06:00:00"))
+//                .parkSpace("1")
+//                .floor(0)
+//                .build();
 }
 
 @Getter
@@ -134,36 +191,55 @@ class AdminRequest {
     private int parkSpace;
 }
 
-class JsonMapper {
+class ByteMapper {
     // 1. json -> 입차
-    public static InCarRequest jsonToInCarRequest(JsonNode json, int floor) {
+    public static InCarRequest byteToInCarRequest(byte[] body, int floor) {
+
+        String carNum = new String(Arrays.copyOfRange(body, 0, 18));
+        String inCarTime = new String(Arrays.copyOfRange(body, 18, 22));
+        int parkSpace = ByteBuffer.wrap(body, 40, 4).getInt();
+
         return InCarRequest.builder()
                 .floor(floor)
-                .carNum(json.get("carNum").asText())
-                .inCarTime(LocalDateTime.parse/*문자열 -> 시간 객체타입으로 변환*/(json.get("inCarTime").asText()/* json 시간 문자열을 가져옴 */))
-                .spotString(spotArr[json.get("parkSpace").asInt()])
-                .spotInt(json.get("parkSpace").asInt())
+                .carNum(carNum)
+                .inCarTime(LocalDateTime.parse(inCarTime/*, timeFormatter*/))
+                .spotString(spotArr[parkSpace])
+                .spotInt(parkSpace)
                 .build(); // 객체가 생성됨.
     }
+
     // 2. json -> 출차
-    public static OutCarRequest jsonToOutCarRequest(JsonNode json, int floor) {
+    public static OutCarRequest byteToOutCarRequest(byte[] body, int floor) {
+
+        String outCarTime = new String(Arrays.copyOfRange(body, 0, 22));
+        int parkSpace = ByteBuffer.wrap(body, 22, 4).getInt();
+
         return OutCarRequest.builder()
                 .floor(floor)
-                .spotInt(json.get("parkSpace").asInt())
-                .outCarTime(LocalDateTime.parse/*문자열 -> 시간 객체타입으로 변환*/(json.get("outCarTime").asText()/* json 시간 문자열을 가져옴 */))
+                .spotInt(parkSpace)
+                .outCarTime(LocalDateTime.parse(outCarTime/*, TimeFormatter*/))
                 .build(); // 객체가 생성됨.
     }
+
     // 3. json -> 조회
-    public static SearchCarRequest jsonToSearchCarRequest(JsonNode json) {
+    public static SearchCarRequest byteToSearchCarRequest(byte[] body) {
+
+        String nowTime = new String(Arrays.copyOfRange(body, 0, 22));
+        String carNum = new String(Arrays.copyOfRange(body, 22, 4));
+
         return SearchCarRequest.builder()
-                .carNum(json.get("carNum").asText())
-                .nowTime(LocalDateTime.parse/*문자열 -> 시간 객체타입으로 변환*/(json.get("nowTime").asText()/* json 시간 문자열을 가져옴 */))
+                .carNum(carNum)
+                .nowTime(LocalDateTime.parse(nowTime/*, timeFormatter*/))
                 .build();
     }
-    public static AdminRequest jsonToAdminRequest(JsonNode json, int floor) {
+
+    public static AdminRequest byteToAdminRequest(byte[] body, int floor) {
+
+        int parkSpace = ByteBuffer.wrap(body, 0, 4).getInt();
+
         return AdminRequest.builder()
                 .floor(floor)
-                .parkSpace(json.get("parkSpace").asInt())
+                .parkSpace(parkSpace)
                 .build();
     }
 }
@@ -227,7 +303,7 @@ class Process {
             if(findCarInfo==null) throw new RuntimeException("해당 차량번호가 존재하지 않습니다.");
 
             long time = calculateTime(findCarInfo.getInCartime(), searchCarRequest.getNowTime());
-            System.out.println("price: " + (time/15)*500 + "\n" + time/60 +"시간 " + time%60 + "분이 지났습니다.");
+            System.out.println("price: " + (time/15)*500 + "\n" + time/60 +"시간 " + time%60 + "분이 지났습니다."); // 분을 integer로 보내기
 
         } catch (Exception e) {
             System.out.println(e.getMessage());
@@ -278,43 +354,51 @@ class Process {
 }
 
 class RequestHandler {
-    public static void handleRequest(String jsonRequest) {
+    public static void handleRequest(DataInputStream din) {
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
+            // 1. header에서 flag와 bodysize를 읽는다.
+            byte[] header = new byte[8];
+            din.readFully(header, 0, 8);
 
-            JsonNode json = objectMapper.readTree(jsonRequest);
-            int flag = json.get("flag").asInt();
-            int floor = flag / 10 - 1;
-            int action = flag % 10;
+            String flag = new String(Arrays.copyOfRange(header, 0, 4));
+            int bodySize = ByteBuffer.wrap(header, 4, 4).getInt();
 
+            System.out.println("flag: "+ flag + ", bodySize: "+ bodySize);
+
+            int floor = Character.getNumericValue(flag.indexOf(0));
+            int action = Character.getNumericValue(flag.indexOf(1));
+
+            // 2. bodySize 만큼 body를 읽는다.
+            byte[] body = new byte[bodySize];
+            din.readFully(body, 8, bodySize);
+
+            // 3. action에 따라 body byte[] 배열을 알맞은 객체로 변환한다.
             switch (action) {
                 case 1:
-                    // json -> 입차객체
-                    InCarRequest inCarRequest = JsonMapper.jsonToInCarRequest(json, floor);
-                    // 입차 처리 + 층수
+                    // 입차 처리
+                    InCarRequest inCarRequest = ByteMapper.byteToInCarRequest(body, floor);
                     Process.inCarProcess(inCarRequest);
                     break;
                 case 2:
                     // 출차 처리
-                    OutCarRequest outCarRequest = JsonMapper.jsonToOutCarRequest(json, floor);
-                    // 출차 처리
+                    OutCarRequest outCarRequest = ByteMapper.byteToOutCarRequest(body, floor);
                     Process.outCarProcess(outCarRequest);
                     break;
                 case 3:
                     // 조회 처리
-                    SearchCarRequest searchCarRequest = JsonMapper.jsonToSearchCarRequest(json);
+                    SearchCarRequest searchCarRequest = ByteMapper.byteToSearchCarRequest(body);
                     Process.searchCarProcess(searchCarRequest);
                     break;
                 case 4:
+                    // 동기화
                     Process.synchronize();
                     break;
                 case 5:
-                    AdminRequest adminRequest = JsonMapper.jsonToAdminRequest(json, floor);
+                    AdminRequest adminRequest = ByteMapper.byteToAdminRequest(body, floor);
                     Process.adminProcess(adminRequest);
                     break;
                 default:
-                    // 잘못된 action 값 처리
-                    break;
+                    throw new RuntimeException("프로토콜 오류");
             }
         } catch (Exception e) {
             e.printStackTrace();
