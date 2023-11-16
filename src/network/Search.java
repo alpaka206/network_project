@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 
 
 public class Search {
@@ -19,28 +20,33 @@ public class Search {
     }
 	
 	public String processOut() {
-		try (Socket socket = new Socket("server address", 12345);
+		try (Socket socket = new Socket(NetworkSettings.srvIpAddr, NetworkSettings.portNum);
 	             DataOutputStream out = new DataOutputStream(socket.getOutputStream());
 	             DataInputStream in = new DataInputStream(socket.getInputStream())) {
-
+			
+			String flag = "33";
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/HH/mm");
+            String formattedTime = time.format(formatter);
+			
 	            // Header 생성
-	        	byte[] header = new byte[9];
-	            String flag = "33";
+	        	byte[] header = new byte[8];
 	            ByteBuffer.wrap(header, 0, 4).put(flag.getBytes());
-	            int bodySize = 20; // 16 (LocalDateTime) + 4 (parkSpace)
+	            int bodySize = 26; // 22 + 4 
 	            ByteBuffer.wrap(header, 4, 4).putInt(bodySize);
 
 	            // Body 생성
 	            byte[] body = new byte[bodySize];
-	            ByteBuffer.wrap(body, 0, 16).putLong(time.toEpochSecond(null));
-	            ByteBuffer.wrap(body, 16, 18).put(carNum.getBytes());
+	            ByteBuffer.wrap(body, 0, 22).put(formattedTime.getBytes());
+	            ByteBuffer.wrap(body, 22, 4).put(carNum.getBytes());
 
 	            // 데이터 전송
-	            out.write(header);
-	            out.write(body);
+	            byte[] request = new byte[bodySize + 8];
+	            System.arraycopy(header, 0, request, 0, 8);
+	            System.arraycopy(body, 0, request, 8, bodySize);
+	            out.write(request);
 
 	            // 서버 응답 받기
-	            byte[] response = new byte[9]; // Header는 9바이트로 수정
+	            byte[] response = new byte[25];
 	            in.readFully(response);
 
 	            // 응답 데이터 처리
@@ -48,17 +54,11 @@ public class Search {
 	            boolean isSuccess = response[4] == 1;
 	            int responseBodySize = ByteBuffer.wrap(response, 5, 4).getInt();
 
-	            // Body 생성
-	            byte[] responseBody = new byte[responseBodySize];
-	            in.readFully(responseBody);
-
 	            // Body 데이터 처리
-	            int price = ByteBuffer.wrap(responseBody, 0, 4).getInt();
-	            long epochSeconds = ByteBuffer.wrap(responseBody, 4, 12).getLong();
-	            int nano = ByteBuffer.wrap(responseBody, 16, 4).getInt();
-	            LocalDateTime usetime = LocalDateTime.ofEpochSecond(epochSeconds, nano, ZoneOffset.UTC);
-	            int parkspace = ByteBuffer.wrap(responseBody, 20, 4).getInt();
-	            int floor = ByteBuffer.wrap(responseBody, 24, 4).getInt();
+	            int price = ByteBuffer.wrap(response, 0, 4).getInt();
+	            int usetime = ByteBuffer.wrap(response, 4, 4).getInt();
+	            int parkspace = ByteBuffer.wrap(response, 8, 4).getInt();
+	            int floor = ByteBuffer.wrap(response, 12, 4).getInt();
 	            // 결과 문자열 생성
 	            result = price + "/" + carNum;
 		} catch (IOException e) {
