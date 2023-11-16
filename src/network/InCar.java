@@ -36,29 +36,26 @@ public class InCar {
             
             // header
             byte[] header = new byte[8];
-//            ByteBuffer.wrap(header).put(flag.getBytes());
         	ByteBuffer.wrap(header, 0, 4).put(flag.getBytes());
             int bodySize = 44; // 18 + 22 + 4
             ByteBuffer.wrap(header, 4, 4).putInt(bodySize);
-//            out.write(header);
 
             // body
             byte[] body = new byte[bodySize];
             ByteBuffer.wrap(body, 0, 18).put(carNum.getBytes());
             ByteBuffer.wrap(body, 18, 22).put(formattedTime.getBytes());
             ByteBuffer.wrap(body, 40, 4).putInt(parkSpace);
-//            out.write(body);
+
             byte[] request = new byte[bodySize + 8];
             System.arraycopy(header, 0, request, 0, 8);
             System.arraycopy(body, 0, request, 8, bodySize);
             out.write(request);
             
-//            String result = reader.readLine();
-//            System.out.println(result);
+            // 서버 응답 받기
             byte[] response = new byte[9];
             in.readFully(response);
 
-            // 헤더에서 flag, isSuccess, bodySize 추출하기
+            // 응답 데이터 처리
             String responseFlag = new String(Arrays.copyOfRange(response, 0, 4));
             boolean isSuccess = response[4] == 1;
             int responseBodySize = ByteBuffer.wrap(response, 5, 4).getInt();

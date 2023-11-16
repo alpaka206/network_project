@@ -31,7 +31,6 @@ public class OutCar {
             
             // Header 생성
         	byte[] header = new byte[8];
-        	
         	ByteBuffer.wrap(header, 0, 4).put(flag.getBytes());
             int bodySize = 26; // 22 + 4 
             ByteBuffer.wrap(header, 4, 4).putInt(bodySize);
@@ -55,7 +54,6 @@ public class OutCar {
             String responseFlag = new String(Arrays.copyOfRange(response, 0, 4));
             boolean isSuccess = response[4] == 1;
             int responseBodySize = ByteBuffer.wrap(response, 5, 4).getInt();
-
 
             // Body 데이터 처리
             int price = ByteBuffer.wrap(response, 9, 4).getInt();
