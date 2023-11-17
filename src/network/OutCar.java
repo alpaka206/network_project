@@ -29,6 +29,7 @@ public class OutCar {
         	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/HH/mm");
             String formattedTime = time.format(formatter);
             
+            
             // Header 생성
         	byte[] header = new byte[8];
         	ByteBuffer.wrap(header, 0, 4).put(flag.getBytes());
@@ -44,11 +45,16 @@ public class OutCar {
             byte[] request = new byte[bodySize + 8];
             System.arraycopy(header, 0, request, 0, 8);
             System.arraycopy(body, 0, request, 8, bodySize);
+            System.out.print("Request in Hexadecimal: ");
+            for (byte b : request) {
+                System.out.print(String.format("%02X ", b));
+            }
+            System.out.println();
             out.write(request);
 
             // 서버 응답 받기
             byte[] response = new byte[31];
-            in.readFully(response);
+            in.read(response);
 
             // 응답 데이터 처리
             String responseFlag = new String(Arrays.copyOfRange(response, 0, 4));
@@ -57,11 +63,61 @@ public class OutCar {
 
             // Body 데이터 처리
             int price = ByteBuffer.wrap(response, 9, 4).getInt();
-            String carNum = new String(Arrays.copyOfRange(response, 13, 18));
+            String carNum = new String(Arrays.copyOfRange(response, 13, 31));
+            
+            System.out.print("Response in Hexadecimal: ");
+            for (byte b : response) {
+                System.out.print(String.format("%02X ", b));
+            }
 
             // 결과 문자열 생성
             result = "!!출차되었습니다!!<br>차 번호: " + carNum + "<br>가격: " + price;
-
+            System.out.println(result);
+            
+            
+//         // Header 생성
+//        	byte[] header = new byte[6];
+//        	ByteBuffer.wrap(header, 0, 2).put(flag.getBytes());
+//            int bodySize = 15; // 11 + 4 
+//            ByteBuffer.wrap(header, 2, 4).putInt(bodySize);
+//
+//            // Body 생성
+//            byte[] body = new byte[bodySize];
+//            ByteBuffer.wrap(body, 0, 11).put(formattedTime.getBytes());
+//            ByteBuffer.wrap(body, 11, 4).putInt(parkSpace);
+//
+//            // 데이터 전송
+//            byte[] request = new byte[bodySize + 6];
+//            System.arraycopy(header, 0, request, 0, 6);
+//            System.arraycopy(body, 0, request, 6, bodySize);
+//            System.out.print("Request in Hexadecimal: ");
+//            for (byte b : request) {
+//                System.out.print(String.format("%02X ", b));
+//            }
+//            System.out.println();
+//            out.write(request);
+//
+//            // 서버 응답 받기
+//            byte[] response = new byte[22];
+//            in.readFully(response);
+//
+//            //응답 데이터 처리
+//            String responseFlag = new String(Arrays.copyOfRange(response, 0, 2));
+//            boolean isSuccess = response[2] == 1;
+//            int responseBodySize = ByteBuffer.wrap(response, 3, 4).getInt();
+//
+//            // Body 데이터 처리
+//            int price = ByteBuffer.wrap(response, 7, 4).getInt();
+//            String carNum = new String(Arrays.copyOfRange(response, 11, 11));
+//            
+//            System.out.print("Response in Hexadecimal: ");
+//            for (byte b : response) {
+//                System.out.print(String.format("%02X ", b));
+//            }
+//
+//            // 결과 문자열 생성
+//            result = "!!출차되었습니다!!<br>차 번호: " + carNum + "<br>가격: " + price;
+//            System.out.println(result);
         } catch (IOException e) {
             e.printStackTrace();
         }
