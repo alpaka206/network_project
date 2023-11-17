@@ -54,6 +54,12 @@ public class Search {
 	            boolean isSuccess = response[4] == 1;
 	            int responseBodySize = ByteBuffer.wrap(response, 5, 4).getInt();
 
+	            // 검색 실패 시 처리
+	            if (!isSuccess) {
+	                return "Fail";
+	            }
+
+	            
 	            // Body 데이터 처리
 	            int price = ByteBuffer.wrap(response, 0, 4).getInt();
 	            int usetime = ByteBuffer.wrap(response, 4, 4).getInt();
@@ -67,7 +73,9 @@ public class Search {
 	            // 결과 문자열 생성
 	            result = "가격: " + price + "<br>사용시간: " + formattedUseTime + "<br>주차 자리: " + parkspace + "<br>층수: " + floor;
 		} catch (IOException e) {
-			e.printStackTrace();
+			 // 검색 실패 예외 처리
+            e.printStackTrace();
+            return "Fail";
 		}
 		return result;
 	}

@@ -29,7 +29,6 @@ public class Admin {
             int bodySize = 4; 
             ByteBuffer.wrap(header, 4, 4).putInt(bodySize);
 
-
             // body
             byte[] body = new byte[bodySize];
             ByteBuffer.wrap(body, 0, 4).putInt(parkSpace);
@@ -42,7 +41,7 @@ public class Admin {
             byte[] response = new byte[9];
             in.readFully(response);
 
-            // 헤더에서 flag, isSuccess, bodySize 추출하기
+
             String responseFlag = new String(Arrays.copyOfRange(response, 0, 4));
             boolean isSuccess = response[4] == 1;
             int responseBodySize = ByteBuffer.wrap(response, 5, 4).getInt();
