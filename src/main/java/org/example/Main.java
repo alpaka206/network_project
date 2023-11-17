@@ -13,14 +13,8 @@ import lombok.Builder;
 import lombok.Getter;
 
 import static org.example.Main.parking;
-import static org.example.Main.spotArr;
 
 public class Main {
-    static String[] spotArr = {"P1", "P2", "P3", "P4",
-            "J1", "J2", "J3", "J4",
-            "H1", "H2", "H3", "H4",
-            "F1", "F2", "F3", "F4"};
-
     static CarInfo[][] parking = new CarInfo[3][16];
 
     public static void main(String[] args) {
@@ -44,7 +38,8 @@ public class Main {
 
             // 1. request byte[] 배열
             byte[] request = new byte[64];
-            din.readFully(request);
+            din.read(request);
+            System.out.println(Arrays.toString(request));
 
             // 2. flag와 bodySize를 추출한다.
             String flag = new String(Arrays.copyOfRange(request, 0, 4));
@@ -54,8 +49,11 @@ public class Main {
             byte[] body = new byte[bodySize];
             System.arraycopy(request, 8, body, 0, bodySize);
 
-            // 4. flag와 body를 넘긴다.
-            RequestHandler.handleRequest(flag, body);
+            // 4. flag와 body를 넘기고, response body를 얻는다.
+            byte[] response = RequestHandler.handleRequest(flag, body); // body 바이트 배열
+
+            System.out.println(Arrays.toString(response));
+            dout.write(response);
 
         } catch (IOException e) {
             System.out.println(e.getMessage());
@@ -69,7 +67,7 @@ public class Main {
 class CarInfo {
     private String carNum;
     private LocalDateTime inCartime;
-    private String parkSpace; // P4
+    private int parkSpace;
     private int floor;
 }
 
@@ -81,8 +79,7 @@ class InCarRequest {
     private int floor;
     private String carNum;
     private LocalDateTime inCarTime;
-    private String spotString;
-    private int spotInt;
+    private int parkSpace;
 }
 
 
@@ -91,7 +88,7 @@ class InCarRequest {
 @AllArgsConstructor
 class OutCarRequest {
     private int floor;
-    private int spotInt;
+    private int parkSpace;
     private LocalDateTime outCarTime;
 }
 
@@ -123,16 +120,6 @@ class OutCarResponse {
 @Getter
 @Builder
 @AllArgsConstructor
-class SearchCarResponse {
-    private int price;
-    private String useTime;
-    private int parkSpace;
-    private int floor;
-}
-
-@Getter
-@Builder
-@AllArgsConstructor
 class AdminRequest {
     private int floor;
     private int parkSpace;
@@ -149,9 +136,8 @@ class ByteMapper {
         return InCarRequest.builder()
                 .floor(floor)
                 .carNum(carNum)
-                .inCarTime(LocalDateTime.parse(inCarTime/*, timeFormatter*/))
-                .spotString(spotArr[parkSpace])
-                .spotInt(parkSpace)
+                .inCarTime(LocalDateTime.now()/* LocalDateTime.parse(inCarTime, timeFormatter*/) // Todo datetime 파싱
+                .parkSpace(parkSpace)
                 .build(); // 객체가 생성됨.
     }
 
@@ -163,8 +149,8 @@ class ByteMapper {
 
         return OutCarRequest.builder()
                 .floor(floor)
-                .spotInt(parkSpace)
-                .outCarTime(LocalDateTime.parse(outCarTime/*, TimeFormatter*/))
+                .parkSpace(parkSpace)
+                .outCarTime(LocalDateTime.now()/* LocalDateTime.parse(outCarTime, TimeFormatter*/) // Todo datetime 파싱
                 .build(); // 객체가 생성됨.
     }
 
@@ -176,7 +162,7 @@ class ByteMapper {
 
         return SearchCarRequest.builder()
                 .carNum(carNum)
-                .nowTime(LocalDateTime.parse(nowTime/*, timeFormatter*/))
+                .nowTime(LocalDateTime.now()/*LocalDateTime.parse(nowTime, timeFormatter*/) // Todo datetime 파싱
                 .build();
     }
 
@@ -212,75 +198,94 @@ class Process {
         return duration.toMinutes();
     }
 
-    public static void inCarProcess(InCarRequest inCarRequest) {
+    public static byte[] inCarProcess(InCarRequest inCarRequest) throws RuntimeException {
+
+        // 1. 로직 실행
         if(searchCarInfo(inCarRequest.getCarNum()) != null) {
             throw new RuntimeException("요청한 자리에 주차된 차량이 있습니다.");
         }
 
-        parking[inCarRequest.getFloor()][inCarRequest.getSpotInt()] =
+        parking[inCarRequest.getFloor()][inCarRequest.getParkSpace()] =
                 CarInfo.builder()
                         .carNum(inCarRequest.getCarNum())
                         .inCartime(inCarRequest.getInCarTime())
-                        .parkSpace(inCarRequest.getSpotString())
+                        .parkSpace(inCarRequest.getParkSpace())
                         .floor(inCarRequest.getFloor())
                         .build();
+
+        // 2. responseBody 리턴
+        return new byte[0];
     }
 
-    public static void outCarProcess(OutCarRequest outCarRequest) {
-        try {
+    public static byte[] outCarProcess(OutCarRequest outCarRequest) throws RuntimeException {
 
-            int floor = outCarRequest.getFloor();
-            int parkSpace = outCarRequest.getSpotInt();
+        byte[] body = new byte[22];
 
-            if(parking[floor][parkSpace]==null) throw new RuntimeException("해당 자리에 주차된 차량이 없습니다");
-            long time = calculateTime(parking[floor][parkSpace].getInCartime(), outCarRequest.getOutCarTime());
+        // 1. 주차된 차량을 확인
+        int floor = outCarRequest.getFloor();
+        int parkSpace = outCarRequest.getParkSpace();
 
-            System.out.println("price: " + (time/15)*500 + "\n" + time/60 +"시간 " + time%60 + "분이 지났습니다.");
-            parking[outCarRequest.getFloor()][outCarRequest.getSpotInt()] = null;
+        if(parking[floor][parkSpace]==null) throw new RuntimeException("해당 자리에 주차된 차량이 없습니다");
 
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
+        // 2. 주차 시간, 가격 계산
+        long time = calculateTime(parking[floor][parkSpace].getInCartime(), outCarRequest.getOutCarTime());
+        int price = ((int) time) / 15 * 500;
+        System.out.println("price: " + price + "\n" + time/60 +"시간 " + time%60 + "분이 지났습니다.");
+
+        // 3. 주차 차량 삭제 및 responseBody 리턴
+        String carNum = parking[outCarRequest.getFloor()][outCarRequest.getParkSpace()].getCarNum();
+        parking[outCarRequest.getFloor()][outCarRequest.getParkSpace()] = null;
+
+        ByteBuffer.wrap(body,0,4).putInt(price);
+        ByteBuffer.wrap(body,4,18).put(carNum.getBytes());
+
+        return body;
     }
 
-    public static void searchCarProcess(SearchCarRequest searchCarRequest) {
-        try {
+    public static byte[] searchCarProcess(SearchCarRequest searchCarRequest) throws RuntimeException {
 
-            CarInfo findCarInfo = searchCarInfo(searchCarRequest.getCarNum());
-            if(findCarInfo==null) throw new RuntimeException("해당 차량번호가 존재하지 않습니다.");
+        // 1. 로직 실행
+        CarInfo findCarInfo = searchCarInfo(searchCarRequest.getCarNum());
+        if(findCarInfo==null) throw new RuntimeException("해당 차량번호가 존재하지 않습니다.");
 
-            long time = calculateTime(findCarInfo.getInCartime(), searchCarRequest.getNowTime());
-            System.out.println("price: " + (time/15)*500 + "\n" + time/60 +"시간 " + time%60 + "분이 지났습니다."); // 분을 integer로 보내기
+        long time = calculateTime(findCarInfo.getInCartime(), searchCarRequest.getNowTime());
+        int price = ((int) time) / 15 * 500;
 
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
+        System.out.println("price: " + price + "\n" + time/60 +"시간 " + time%60 + "분이 지났습니다."); // 분을 integer로 보내기
+
+        // 2. responseBody 리턴
+        byte[] body = new byte[16];
+        ByteBuffer.wrap(body, 0, 4).putInt(price);
+        ByteBuffer.wrap(body, 4, 4).putInt((int) time);
+        ByteBuffer.wrap(body, 8, 4).putInt(findCarInfo.getParkSpace());
+        ByteBuffer.wrap(body, 12, 4).putInt(findCarInfo.getFloor());
+
+        return body;
     }
 
-    public static void adminProcess(AdminRequest adminRequest){
-        try{
-            int floor = adminRequest.getFloor();
-            int parkSpace = adminRequest.getParkSpace();
+    public static byte[] adminProcess(AdminRequest adminRequest) throws RuntimeException {
+        // 1. 로직 실행
+        int floor = adminRequest.getFloor();
+        int parkSpace = adminRequest.getParkSpace();
 
-            if (parking[floor][parkSpace] == null) {
-                parking[floor][parkSpace] = CarInfo.builder()
-                        .carNum("Admin")
-                        .inCartime(null)
-                        .parkSpace(null)
-                        .floor(floor) // 여기에 floor 값을 설정해야 합니다.
-                        .build();
-            } else if(parking[floor][parkSpace].getCarNum().equals("Admin")){
-                parking[floor][parkSpace] = null;
-            } else {
-                throw new RuntimeException("차량이 주차된 자리입니다.");
-            }
+        if (parking[floor][parkSpace] == null) {
+            parking[floor][parkSpace] = CarInfo.builder()
+                    .carNum("Admin")
+                    .inCartime(LocalDateTime.now())
+                    .parkSpace(parkSpace)
+                    .floor(floor)
+                    .build();
+        } else if(parking[floor][parkSpace].getCarNum().equals("Admin")){
+            parking[floor][parkSpace] = null;
+        } else {
+            throw new RuntimeException("차량이 주차된 자리입니다.");
         }
-        catch(Exception e){
-            System.out.println(e.getMessage());
-        }
+
+        // 2. response body 리턴
+        return new byte[0];
     }
 
-    public static void synchronize() {
+    public static byte[] synchronize() {
         int[][] response = new int[3][16];
 
         for(int i=0; i<parking.length; i++) {
@@ -295,49 +300,73 @@ class Process {
             }
         }
 
-        System.out.println(Arrays.deepToString(response));
+        return (Arrays.deepToString(response)).getBytes();
     }
 
 }
 
 class RequestHandler {
-    public static void handleRequest(String flag, byte[] body) {
+    public static byte[] handleRequest(String flag, byte[] body) {
+
+        byte[] responseHeader = new byte[9];
+        byte[] responseBody = null;
+        byte[] response = null;
+
         try {
             // 1. flag에서 floor와 action을 얻는다.
-            int floor = Character.getNumericValue(flag.indexOf(0));
-            int action = Character.getNumericValue(flag.indexOf(1));
+            int floor = Integer.parseInt(flag) / 10;
+            int action = Integer.parseInt(flag) % 10;
 
-            // 2. action에 따라 body byte[] 배열을 알맞은 객체로 변환한다.
+            // 2. action에 따라 body byte[] 배열을 알맞은 객체로 변환 / 로직을 실행 / body 배열을 리턴한다.
             switch (action) {
                 case 1:
                     // 입차 처리
                     InCarRequest inCarRequest = ByteMapper.byteToInCarRequest(body, floor);
-                    Process.inCarProcess(inCarRequest);
+                    responseBody = Process.inCarProcess(inCarRequest);
                     break;
                 case 2:
                     // 출차 처리
                     OutCarRequest outCarRequest = ByteMapper.byteToOutCarRequest(body, floor);
-                    Process.outCarProcess(outCarRequest);
+                    responseBody = Process.outCarProcess(outCarRequest);
                     break;
                 case 3:
                     // 조회 처리
                     SearchCarRequest searchCarRequest = ByteMapper.byteToSearchCarRequest(body);
-                    Process.searchCarProcess(searchCarRequest);
+                    responseBody = Process.searchCarProcess(searchCarRequest);
                     break;
                 case 4:
                     // 동기화
-                    Process.synchronize();
+                    responseBody = Process.synchronize();
                     break;
                 case 5:
                     AdminRequest adminRequest = ByteMapper.byteToAdminRequest(body, floor);
-                    Process.adminProcess(adminRequest);
+                    responseBody = Process.adminProcess(adminRequest);
                     break;
                 default:
                     throw new RuntimeException("프로토콜 오류");
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
+            // 3. response header 생성
+            ByteBuffer.wrap(responseHeader, 0, 4).put(flag.getBytes());
+            ByteBuffer.wrap(responseHeader, 4, 1).put((byte) (true ? 1 : 0));
+            ByteBuffer.wrap(responseHeader, 5, 4).putInt(responseBody.length);
+
+            // 4. response 생성
+            response = new byte[9 + responseBody.length];
+            System.arraycopy(responseHeader, 0, response, 0, 9);
+            System.arraycopy(responseBody, 0, response, 9, responseBody.length);
+
+        } catch (RuntimeException e) {
+            // error response header 생성 -> client 요청의 flag / 실패 / bodySize 0 을 리턴
+            ByteBuffer.wrap(responseHeader, 0, 4).put(flag.getBytes());
+            ByteBuffer.wrap(responseHeader, 4, 1).put((byte) (false ? 1 : 0));
+            ByteBuffer.wrap(responseHeader, 5, 4).putInt(0);
+
+            // error response 생성
+            response = new byte[9];
+            System.arraycopy(responseHeader, 0, response, 0, 9);
+        }
+
+        return response;
+    }
 }
