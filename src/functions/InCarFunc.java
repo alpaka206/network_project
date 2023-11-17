@@ -27,6 +27,7 @@ public class InCarFunc {
 
 		Admin admin = new Admin(floor, space);
 
+		//admin process 
 		if (adminMode) {
 			if (btn.isEnabled()) {
 				if (parkSpace[space] == true) {
@@ -36,14 +37,18 @@ public class InCarFunc {
 					return;
 				}
 				JOptionPane.showConfirmDialog(null, "Do you want to block?", "Block Dialog", JOptionPane.YES_NO_OPTION);
-				///asdf
+
+				//admin request
 				admin.sendRequestToServer();
+
 				adminBlockState[space] = false;
 				btn.setEnabled(false);
 				return;
 			} else {
 				JOptionPane.showConfirmDialog(null, "Do you want to enable space?", "Block Dialog",
 					JOptionPane.YES_NO_OPTION);
+
+				//admin request
 				admin.sendRequestToServer();
 				adminBlockState[space] = true;
 				btn.setEnabled(true);
@@ -51,12 +56,14 @@ public class InCarFunc {
 			}
 		}
 
+		//incar process
 		if (parkSpace[space] == false) {
 			this.inCarDialog(frame);
 
 			LocalDateTime time = LocalDateTime.now();
 			InCar inCar = new InCar(time, carNum, floor, space);
 
+			//incar request
 			inCar.sendRequestToServer();
 
 			ImageIcon buttonImage = new ImageIcon("./ButtonImage/Car3.png");
@@ -77,12 +84,13 @@ public class InCarFunc {
 			btn.setText("");
 
 		} else { //outCar process
-			outCarDialog(frame);
+
 			LocalDateTime time = LocalDateTime.now();
 			OutCar outCar = new OutCar(time, carNum, floor, space);
-			outCar.processOut();
+			//outcar request 
+			String result = outCar.processOut();
 
-			//시간,요금 받아오기
+			outCarDialog(frame, result);
 			parkSpace[space] = false;
 			CollocateSpace collocateSpace = new CollocateSpace();
 			btn.setText(collocateSpace.getSpaceName(floor, space));
@@ -117,8 +125,8 @@ public class InCarFunc {
 
 	}
 
-	private void outCarDialog(ParkingLotFrame frame) {
-		//JOptionPane.showMessageDialog(frame, "차량번호: " + carNum + "\n요금: " + cost + "\n결제하시겠습니까??");
+	private void outCarDialog(ParkingLotFrame frame, String result) {
+		JOptionPane.showMessageDialog(frame, result);
 		JOptionPane.showMessageDialog(frame, "출차처리 되었습니다.");
 	}
 }
