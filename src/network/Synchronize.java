@@ -31,10 +31,16 @@ public class Synchronize {
 
 			byte[] receiveData = new byte[100];
 
-			DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+			DatagramPacket receivePacket = new DatagramPacket(receiveData, 54);
 			serverSocket.receive(receivePacket);
 			//flag = ByteBuffer.wrap(Arrays.copyOfRange(receivePacket.getData(), 0, 4)).getInt();
 			//len = ByteBuffer.wrap(Arrays.copyOfRange(receivePacket.getData(), 4, 8)).getInt();
+
+			System.out.print("Response in Hexadecimal: ");
+			for (byte b : receiveData) {
+				System.out.print(String.format("%02X ", b));
+			}
+			System.out.println();
 
 			for (int i = 1; i < 4; i++) {
 				for (int j = 0; j < 16; j++) {
