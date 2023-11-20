@@ -109,7 +109,6 @@ public class InCar {
                 System.out.print(String.format("%02X ", b));
             }
             System.out.println();
-            System.out.println();
             
         } catch (IOException e) {
             e.printStackTrace();

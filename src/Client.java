@@ -33,7 +33,10 @@ public class Client {
 	private List<FloorRadio> radioList = new ArrayList<FloorRadio>();
 	private static List<ParkSpaceButton> spaceList = new ArrayList();
 	private static List<BlockButton> blockList = new ArrayList();
-	private static List<JLabel> labelList = new ArrayList();
+	private static List<StateLabel> labelList = new ArrayList();
+	
+	//Parking State
+	private static List<StateLabel> stateList = new ArrayList<>();
 
 	private static int floor = 1;
 	private Boolean adminMode = false;
@@ -48,7 +51,7 @@ public class Client {
 				UpdateParkingStateFunc u = new UpdateParkingStateFunc();
 				while (true) {
 					synchronize.receiveCurrentState(parkingLots, adminBlockState);
-					u.updateParkingStateLabels(labelList, parkingLots);
+					u.updateParkingStateLabels(stateList, parkingLots);
 					CollocateSpace collocateSpace = new CollocateSpace();
 					collocateSpace.collocateSpace(spaceList, blockList, labelList, floor, parkingLots[floor],
 						adminBlockState[floor]);
@@ -74,7 +77,7 @@ public class Client {
 		initialize();
 	}
 
-	private List<JLabel> getLabel() {
+	private List<StateLabel> getLabel() {
 		return this.labelList;
 	}
 
@@ -333,21 +336,21 @@ public class Client {
 		blockList.add(L_Block);
 		frame.getContentPane().add(L_Block);
 
-		JLabel entrance = new JLabel("Entrance");
+		StateLabel entrance = new StateLabel("Entrance");
 		entrance.setFont(new Font("Pretendard Medium", Font.BOLD, 20));
 		entrance.setForeground(new Color(255, 255, 51));
 		entrance.setBounds(24, 153, 113, 39);
 		labelList.add(entrance);
 		frame.getContentPane().add(entrance);
 
-		JLabel exit = new JLabel("Exit");
+		StateLabel exit = new StateLabel("Exit");
 		exit.setForeground(new Color(255, 255, 51));
 		exit.setFont(new Font("Pretendard Medium", Font.BOLD, 20));
 		exit.setBounds(641, 153, 82, 39);
 		labelList.add(exit);
 		frame.getContentPane().add(exit);
 
-		JLabel floorLabel = new JLabel("B1");
+		StateLabel floorLabel = new StateLabel("B1");
 		floorLabel.setHorizontalTextPosition(SwingConstants.CENTER);
 		floorLabel.setHorizontalAlignment(SwingConstants.CENTER);
 		floorLabel.setForeground(new Color(0, 153, 204));
@@ -356,8 +359,7 @@ public class Client {
 		labelList.add(floorLabel);
 		frame.getContentPane().add(floorLabel);
 
-		//Parking State
-		List<JLabel> stateList = new ArrayList<>();
+		
 
 		//B1 State
 		StateLabel b1State = new StateLabel("B1: 여유");

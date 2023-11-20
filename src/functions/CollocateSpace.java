@@ -8,6 +8,7 @@ import javax.swing.JLabel;
 
 import components.BlockButton;
 import components.ParkSpaceButton;
+import components.StateLabel;
 
 public class CollocateSpace {
 
@@ -18,7 +19,7 @@ public class CollocateSpace {
 	private String[] floor3SpaceName = {"I1", "I2", "I3", "I4", "J1", "J2", "J3", "J4", "K1", "K2", "K3", "K4", "L1",
 		"L2", "L3", "L4"};
 
-	public void collocateSpace(List<ParkSpaceButton> list, List<BlockButton> blockList, List<JLabel> labelList,
+	public void collocateSpace(List<ParkSpaceButton> list, List<BlockButton> blockList, List<StateLabel> labelList,
 		int floor, Boolean[] parkSpaces, Boolean[] adminBlockState) {
 		if (floor == 1) {
 			list.get(0).setBounds(80, 10, 50, 80);

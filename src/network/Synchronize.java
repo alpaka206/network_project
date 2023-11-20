@@ -32,6 +32,7 @@ public class Synchronize {
 			byte[] receiveData = new byte[100];
 
 			DatagramPacket receivePacket = new DatagramPacket(receiveData, 54);
+			serverSocket.setSoTimeout(100000);
 			serverSocket.receive(receivePacket);
 			//flag = ByteBuffer.wrap(Arrays.copyOfRange(receivePacket.getData(), 0, 4)).getInt();
 			//len = ByteBuffer.wrap(Arrays.copyOfRange(receivePacket.getData(), 4, 8)).getInt();
@@ -46,8 +47,8 @@ public class Synchronize {
 			for (int i = 0; i < 3; i++) {
 				for (int j = 0; j < 16; j++) {
 					int n = ByteBuffer
-						.wrap(Arrays.copyOfRange(receivePacket.getData(), 6 + i * 64 + j * 4, 10 + i * 64 + j * 4))
-						.getInt();
+						.wrap(Arrays.copyOfRange(receivePacket.getData(), 6 + i * 16 + j, 6 + i * 16 + j + 1))
+						.get();
 
 					System.out.print(n + " ");
 					if (n == 1)
@@ -60,8 +61,10 @@ public class Synchronize {
 
 				System.out.println();
 			}
+			serverSocket.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
 	}
 }

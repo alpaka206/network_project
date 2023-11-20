@@ -6,13 +6,12 @@ import components.StateLabel;
 import java.util.List;
 
 public class UpdateParkingStateFunc {
-        public void updateParkingStateLabels(List<JLabel> stateList, Boolean[][] parkingLots) {
+        public void updateParkingStateLabels(List<StateLabel> stateList, Boolean[][] parkingLots) {
         for (int floor = 1; floor < parkingLots.length; floor++) {
             String state = CheckStateFunc.checkFloorState(parkingLots[floor]);
-            JLabel stateLabel = stateList.get(floor - 1);
+            StateLabel stateLabel = stateList.get(floor - 1);
             stateLabel.setText("B" + (floor) + ": " + state);
-            
-            ((StateLabel) stateLabel).setColor(state);
+            stateLabel.setColor(state);
         }
     }
 }
