@@ -31,11 +31,11 @@ public class Client {
 	private static Boolean[][] adminBlockState = new Boolean[4][16]; //false = blocked
 
 	private List<FloorRadio> radioList = new ArrayList<FloorRadio>();
-	private List<ParkSpaceButton> spaceList = new ArrayList();
-	private List<BlockButton> blockList = new ArrayList();
+	private static List<ParkSpaceButton> spaceList = new ArrayList();
+	private static List<BlockButton> blockList = new ArrayList();
 	private static List<JLabel> labelList = new ArrayList();
 
-	private int floor = 1;
+	private static int floor = 1;
 	private Boolean adminMode = false;
 
 	public static void main(String[] args) {
@@ -49,6 +49,9 @@ public class Client {
 				while (true) {
 					synchronize.receiveCurrentState(parkingLots, adminBlockState);
 					u.updateParkingStateLabels(labelList, parkingLots);
+					CollocateSpace collocateSpace = new CollocateSpace();
+					collocateSpace.collocateSpace(spaceList, blockList, labelList, floor, parkingLots[floor],
+						adminBlockState[floor]);
 					System.out.println("[Synchronized]");
 				}
 			}
