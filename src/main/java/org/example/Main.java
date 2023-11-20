@@ -1,62 +1,102 @@
 package org.example;
 
+import java.io.*;
+import java.net.*;
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
 import static org.example.Main.parking;
-import static org.example.Main.spotArr;
-import static org.example.RequestHandler.handleRequest;
 
 public class Main {
-    static String[] spotArr = {"P1", "P2", "P3", "P4",
-            "J1", "J2", "J3", "J4",
-            "H1", "H2", "H3", "H4",
-            "F1", "F2", "F3", "F4"};
-
     static CarInfo[][] parking = new CarInfo[3][16];
 
-    public static void main(String[] args) {
-//        클라이언트로부터 받은 JSON 문자열
-//        String json = "{\"flag\":15,\"parkSpace\":\"1\"}";
-        String json = "{\"flag\":44}";
+    private static void sendUdpRequest() {
+        try {
+            // 1. Server configuration
+            InetAddress serverAddress = InetAddress.getByName("192.168.123.5");
+            int serverPort = 54254;
 
-        parking[0][1] = CarInfo.builder()
-                .carNum("12가 1234")
-                .inCartime(LocalDateTime.parse("2023-09-26T06:00:00"))
-                .parkSpace("1")
-                .floor(0)
-                .build();
+            DatagramSocket socket = new DatagramSocket();
 
-        parking[1][8] = CarInfo.builder()
-                .carNum("Admin")
-                .inCartime(LocalDateTime.parse("2023-09-26T06:00:00"))
-                .parkSpace("1")
-                .floor(0)
-                .build();
+            // 2. UDP 동기화 request를 전송한다.
+            byte[] udpResponse = new byte[54];
+            RequestHandler.udpRequest(udpResponse);
+            System.out.println(Arrays.toString(udpResponse));
 
-        // 요청 처리
-        handleRequest(json);
+            DatagramPacket packet = new DatagramPacket(udpResponse, udpResponse.length, serverAddress, serverPort);
+            socket.send(packet);
+
+            System.out.println("UDP 전송 완료");
+
+            socket.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
-//        int port = 8080; // 원하는 포트 번호로 변경
-//        try {
-//            ServerSocket serverSocket = new ServerSocket(port);
-//            System.out.println("서버가 " + port + " 포트에서 대기 중...");
-//
-//            while (true) {
-//                Socket clientSocket = serverSocket.accept();
-//                 클라이언트 요청을 처리하는 스레드를 시작하거나, 핸들러 함수를 호출하는 방식으로 진행
-//            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
+    public static void main(String[] args) {
+
+        ServerSocket serverSocket = null;
+        Socket clientSocket = null;
+        int port = 54254; // 원하는 포트 번호로 변경
+
+        DataInputStream din = null;
+        DataOutputStream dout = null;
+
+        try {
+            serverSocket = new ServerSocket(port);
+            System.out.println("서버가 " + port + " 포트에서 대기 중...");
+
+            while(true) {
+                clientSocket = serverSocket.accept();
+                System.out.println("클라이언트 연결됨.");
+
+                din = new DataInputStream(clientSocket.getInputStream());
+                dout = new DataOutputStream(clientSocket.getOutputStream());
+
+                // 1. request byte[] 배열
+                byte[] request = new byte[64];
+                din.read(request);
+                System.out.println(Arrays.toString(request));
+
+                // Todo 연결 종료 요청 시 연결 끊기
+                if(new String(Arrays.copyOfRange(request,0,2)).equals("66")) break;
+
+                // 2. flag와 bodySize를 추출한다.
+                String flag = new String(Arrays.copyOfRange(request, 0, 2));
+                int bodySize = ByteBuffer.wrap(request, 2, 4).getInt();
+
+                // 3. body를 추출한다.
+                byte[] body = new byte[bodySize];
+                System.arraycopy(request, 6, body, 0, bodySize);
+
+                // 4. flag와 body를 넘기고, response body를 얻는다.
+                byte[] response = RequestHandler.handleRequest(flag, body); // body 바이트 배열
+                System.out.println(Arrays.toString(response));
+
+                dout.write(response);
+                dout.flush();
+
+//                dout.write("Connection Closed".getBytes());
+
+                din.close();
+                dout.close();
+                clientSocket.close();
+
+                sendUdpRequest();
+            }
+            serverSocket.close();
+
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
+    }
 }
 
 @Getter
@@ -65,7 +105,7 @@ public class Main {
 class CarInfo {
     private String carNum;
     private LocalDateTime inCartime;
-    private String parkSpace; // P4
+    private int parkSpace;
     private int floor;
 }
 
@@ -77,8 +117,7 @@ class InCarRequest {
     private int floor;
     private String carNum;
     private LocalDateTime inCarTime;
-    private String spotString;
-    private int spotInt;
+    private int parkSpace;
 }
 
 
@@ -87,7 +126,7 @@ class InCarRequest {
 @AllArgsConstructor
 class OutCarRequest {
     private int floor;
-    private int spotInt;
+    private int parkSpace;
     private LocalDateTime outCarTime;
 }
 
@@ -119,51 +158,59 @@ class OutCarResponse {
 @Getter
 @Builder
 @AllArgsConstructor
-class SearchCarResponse {
-    private int price;
-    private String useTime;
-    private int parkSpace;
-    private int floor;
-}
-
-@Getter
-@Builder
-@AllArgsConstructor
 class AdminRequest {
     private int floor;
     private int parkSpace;
 }
 
-class JsonMapper {
+class ByteMapper {
     // 1. json -> 입차
-    public static InCarRequest jsonToInCarRequest(JsonNode json, int floor) {
+    public static InCarRequest byteToInCarRequest(byte[] body, int floor) {
+
+        String carNum = new String(Arrays.copyOfRange(body, 0, 11));
+        String inCarTime = new String(Arrays.copyOfRange(body, 11, 11+11));
+        int parkSpace = ByteBuffer.wrap(body, 22, 4).getInt();
+
         return InCarRequest.builder()
                 .floor(floor)
-                .carNum(json.get("carNum").asText())
-                .inCarTime(LocalDateTime.parse/*문자열 -> 시간 객체타입으로 변환*/(json.get("inCarTime").asText()/* json 시간 문자열을 가져옴 */))
-                .spotString(spotArr[json.get("parkSpace").asInt()])
-                .spotInt(json.get("parkSpace").asInt())
+                .carNum(carNum)
+                .inCarTime(LocalDateTime.now()/* LocalDateTime.parse(inCarTime, timeFormatter*/) // Todo datetime 파싱
+                .parkSpace(parkSpace)
                 .build(); // 객체가 생성됨.
     }
+
     // 2. json -> 출차
-    public static OutCarRequest jsonToOutCarRequest(JsonNode json, int floor) {
+    public static OutCarRequest byteToOutCarRequest(byte[] body, int floor) {
+
+        String outCarTime = new String(Arrays.copyOfRange(body, 0, 11));
+        int parkSpace = ByteBuffer.wrap(body, 11, 4).getInt();
+
         return OutCarRequest.builder()
                 .floor(floor)
-                .spotInt(json.get("parkSpace").asInt())
-                .outCarTime(LocalDateTime.parse/*문자열 -> 시간 객체타입으로 변환*/(json.get("outCarTime").asText()/* json 시간 문자열을 가져옴 */))
+                .parkSpace(parkSpace)
+                .outCarTime(LocalDateTime.now()/* LocalDateTime.parse(outCarTime, TimeFormatter*/) // Todo datetime 파싱
                 .build(); // 객체가 생성됨.
     }
+
     // 3. json -> 조회
-    public static SearchCarRequest jsonToSearchCarRequest(JsonNode json) {
+    public static SearchCarRequest byteToSearchCarRequest(byte[] body) {
+
+        String nowTime = new String(Arrays.copyOfRange(body, 0, 11));
+        String carNum = new String(Arrays.copyOfRange(body, 11, 11+11));
+
         return SearchCarRequest.builder()
-                .carNum(json.get("carNum").asText())
-                .nowTime(LocalDateTime.parse/*문자열 -> 시간 객체타입으로 변환*/(json.get("nowTime").asText()/* json 시간 문자열을 가져옴 */))
+                .carNum(carNum)
+                .nowTime(LocalDateTime.now()/*LocalDateTime.parse(nowTime, timeFormatter*/) // Todo datetime 파싱
                 .build();
     }
-    public static AdminRequest jsonToAdminRequest(JsonNode json, int floor) {
+
+    public static AdminRequest byteToAdminRequest(byte[] body, int floor) {
+
+        int parkSpace = ByteBuffer.wrap(body, 0, 4).getInt();
+
         return AdminRequest.builder()
                 .floor(floor)
-                .parkSpace(json.get("parkSpace").asInt())
+                .parkSpace(parkSpace)
                 .build();
     }
 }
@@ -189,136 +236,180 @@ class Process {
         return duration.toMinutes();
     }
 
-    public static void inCarProcess(InCarRequest inCarRequest) {
+    public static byte[] inCarProcess(InCarRequest inCarRequest) throws RuntimeException {
+
+        // 1. 로직 실행
         if(searchCarInfo(inCarRequest.getCarNum()) != null) {
             throw new RuntimeException("요청한 자리에 주차된 차량이 있습니다.");
         }
 
-        parking[inCarRequest.getFloor()][inCarRequest.getSpotInt()] =
+        parking[inCarRequest.getFloor()][inCarRequest.getParkSpace()] =
                 CarInfo.builder()
                         .carNum(inCarRequest.getCarNum())
                         .inCartime(inCarRequest.getInCarTime())
-                        .parkSpace(inCarRequest.getSpotString())
+                        .parkSpace(inCarRequest.getParkSpace())
                         .floor(inCarRequest.getFloor())
                         .build();
+
+        // 2. responseBody 리턴
+        return new byte[0];
     }
 
-    public static void outCarProcess(OutCarRequest outCarRequest) {
-        try {
+    public static byte[] outCarProcess(OutCarRequest outCarRequest) throws RuntimeException {
 
-            int floor = outCarRequest.getFloor();
-            int parkSpace = outCarRequest.getSpotInt();
+        byte[] body = new byte[22];
 
-            if(parking[floor][parkSpace]==null) throw new RuntimeException("해당 자리에 주차된 차량이 없습니다");
-            long time = calculateTime(parking[floor][parkSpace].getInCartime(), outCarRequest.getOutCarTime());
+        // 1. 주차된 차량을 확인
+        int floor = outCarRequest.getFloor();
+        int parkSpace = outCarRequest.getParkSpace();
 
-            System.out.println("price: " + (time/15)*500 + "\n" + time/60 +"시간 " + time%60 + "분이 지났습니다.");
-            parking[outCarRequest.getFloor()][outCarRequest.getSpotInt()] = null;
+        if(parking[floor][parkSpace]==null) throw new RuntimeException("해당 자리에 주차된 차량이 없습니다");
 
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
+        // 2. 주차 시간, 가격 계산
+        long time = calculateTime(parking[floor][parkSpace].getInCartime(), outCarRequest.getOutCarTime());
+        int price = ((int) time) / 15 * 500;
+        System.out.println("price: " + price + "\n" + time/60 +"시간 " + time%60 + "분이 지났습니다.");
+
+        // 3. 주차 차량 삭제 및 responseBody 리턴
+        String carNum = parking[outCarRequest.getFloor()][outCarRequest.getParkSpace()].getCarNum();
+        parking[outCarRequest.getFloor()][outCarRequest.getParkSpace()] = null;
+
+        ByteBuffer.wrap(body,0,4).putInt(price);
+        ByteBuffer.wrap(body,4,11).put(carNum.getBytes());
+
+        return body;
     }
 
-    public static void searchCarProcess(SearchCarRequest searchCarRequest) {
-        try {
+    public static byte[] searchCarProcess(SearchCarRequest searchCarRequest) throws RuntimeException {
 
-            CarInfo findCarInfo = searchCarInfo(searchCarRequest.getCarNum());
-            if(findCarInfo==null) throw new RuntimeException("해당 차량번호가 존재하지 않습니다.");
+        // 1. 로직 실행
+        CarInfo findCarInfo = searchCarInfo(searchCarRequest.getCarNum());
+        if(findCarInfo==null) throw new RuntimeException("해당 차량번호가 존재하지 않습니다.");
 
-            long time = calculateTime(findCarInfo.getInCartime(), searchCarRequest.getNowTime());
-            System.out.println("price: " + (time/15)*500 + "\n" + time/60 +"시간 " + time%60 + "분이 지났습니다.");
+        long time = calculateTime(findCarInfo.getInCartime(), searchCarRequest.getNowTime());
+        int price = ((int) time) / 15 * 500;
 
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
+        System.out.println("price: " + price + "\n" + time/60 +"시간 " + time%60 + "분이 지났습니다."); // 분을 integer로 보내기
+
+        // 2. responseBody 리턴
+        byte[] body = new byte[16];
+        ByteBuffer.wrap(body, 0, 4).putInt(price);
+        ByteBuffer.wrap(body, 4, 4).putInt((int) time);
+        ByteBuffer.wrap(body, 8, 4).putInt(findCarInfo.getParkSpace());
+        ByteBuffer.wrap(body, 12, 4).putInt(findCarInfo.getFloor());
+
+        return body;
     }
 
-    public static void adminProcess(AdminRequest adminRequest){
-        try{
-            int floor = adminRequest.getFloor();
-            int parkSpace = adminRequest.getParkSpace();
+    public static byte[] adminProcess(AdminRequest adminRequest) throws RuntimeException {
+        // 1. 로직 실행
+        int floor = adminRequest.getFloor();
+        int parkSpace = adminRequest.getParkSpace();
 
-            if (parking[floor][parkSpace] == null) {
-                parking[floor][parkSpace] = CarInfo.builder()
-                        .carNum("Admin")
-                        .inCartime(null)
-                        .parkSpace(null)
-                        .floor(floor) // 여기에 floor 값을 설정해야 합니다.
-                        .build();
-            } else if(parking[floor][parkSpace].getCarNum().equals("Admin")){
-                parking[floor][parkSpace] = null;
-            } else {
-                throw new RuntimeException("차량이 주차된 자리입니다.");
-            }
+        if (parking[floor][parkSpace] == null) {
+            parking[floor][parkSpace] = CarInfo.builder()
+                    .carNum("Admin")
+                    .inCartime(LocalDateTime.now())
+                    .parkSpace(parkSpace)
+                    .floor(floor)
+                    .build();
+            System.out.println("어드민 막기");
+        } else if(parking[floor][parkSpace].getCarNum().equals("Admin")){
+            parking[floor][parkSpace] = null;
+            System.out.println("어드민 해제");
+        } else {
+            throw new RuntimeException("차량이 주차된 자리입니다.");
         }
-        catch(Exception e){
-            System.out.println(e.getMessage());
-        }
+
+        // 2. response body 리턴
+        return new byte[0];
     }
 
-    public static void synchronize() {
-        int[][] response = new int[3][16];
+    public static void synchronize(byte[] udpResponseBody) {
 
         for(int i=0; i<parking.length; i++) {
             for(int j=0; j<parking[i].length; j++) {
                 if(parking[i][j]==null) {
-                    response[i][j] = 0;
+                    udpResponseBody[i * 16 + j] = 0;
                 } else if (parking[i][j].getCarNum() == "Admin") {
-                    response[i][j] = 2;
+                    udpResponseBody[i * 16 + j] = 2;
                 } else {
-                    response[i][j] = 1;
+                    udpResponseBody[i * 16 + j] = 1;
                 }
             }
         }
-
-        System.out.println(Arrays.deepToString(response));
     }
 
 }
 
 class RequestHandler {
-    public static void handleRequest(String jsonRequest) {
+    public static byte[] handleRequest(String flag, byte[] body) {
+
+        byte[] responseHeader = new byte[9];
+        byte[] responseBody = null;
+        byte[] response = null;
+
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
+            // 1. flag에서 floor와 action을 얻는다.
+            int floor = Integer.parseInt(flag) / 10 - 1;
+            int action = Integer.parseInt(flag) % 10;
 
-            JsonNode json = objectMapper.readTree(jsonRequest);
-            int flag = json.get("flag").asInt();
-            int floor = flag / 10 - 1;
-            int action = flag % 10;
-
+            // 2. action에 따라 body byte[] 배열을 알맞은 객체로 변환 / 로직을 실행 / body 배열을 리턴한다.
             switch (action) {
                 case 1:
-                    // json -> 입차객체
-                    InCarRequest inCarRequest = JsonMapper.jsonToInCarRequest(json, floor);
-                    // 입차 처리 + 층수
-                    Process.inCarProcess(inCarRequest);
+                    // 입차 처리
+                    InCarRequest inCarRequest = ByteMapper.byteToInCarRequest(body, floor);
+                    responseBody = Process.inCarProcess(inCarRequest);
                     break;
                 case 2:
                     // 출차 처리
-                    OutCarRequest outCarRequest = JsonMapper.jsonToOutCarRequest(json, floor);
-                    // 출차 처리
-                    Process.outCarProcess(outCarRequest);
+                    OutCarRequest outCarRequest = ByteMapper.byteToOutCarRequest(body, floor);
+                    responseBody = Process.outCarProcess(outCarRequest);
                     break;
                 case 3:
                     // 조회 처리
-                    SearchCarRequest searchCarRequest = JsonMapper.jsonToSearchCarRequest(json);
-                    Process.searchCarProcess(searchCarRequest);
-                    break;
-                case 4:
-                    Process.synchronize();
+                    SearchCarRequest searchCarRequest = ByteMapper.byteToSearchCarRequest(body);
+                    responseBody = Process.searchCarProcess(searchCarRequest);
                     break;
                 case 5:
-                    AdminRequest adminRequest = JsonMapper.jsonToAdminRequest(json, floor);
-                    Process.adminProcess(adminRequest);
+                    AdminRequest adminRequest = ByteMapper.byteToAdminRequest(body, floor);
+                    responseBody = Process.adminProcess(adminRequest);
                     break;
                 default:
-                    // 잘못된 action 값 처리
-                    break;
+                    throw new RuntimeException("프로토콜 오류");
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+
+            // 3. response header 생성
+            ByteBuffer.wrap(responseHeader, 0, 2).put(flag.getBytes());
+            ByteBuffer.wrap(responseHeader, 2, 1).put((byte) (true ? 1 : 0));
+            ByteBuffer.wrap(responseHeader, 3, 4).putInt(responseBody.length);
+
+            // 4. response 생성
+            response = new byte[7 + responseBody.length];
+            System.arraycopy(responseHeader, 0, response, 0, 7);
+            System.arraycopy(responseBody, 0, response, 7, responseBody.length);
+
+        } catch (RuntimeException e) {
+            // error response header 생성 -> client 요청의 flag / 실패 / bodySize 0 을 리턴
+            ByteBuffer.wrap(responseHeader, 0, 2).put(flag.getBytes());
+            ByteBuffer.wrap(responseHeader, 2, 1).put((byte) (false ? 1 : 0));
+            ByteBuffer.wrap(responseHeader, 3, 4).putInt(0);
+
+            // error response 생성
+            response = new byte[7];
+            System.arraycopy(responseHeader, 0, response, 0, 7);
         }
+
+        return response;
     }
 
+    public static void udpRequest(byte[] udpResponse) {
+        // UDP 동기화 response 생성
+        byte[] udpResponseBody = new byte[48];
+        Process.synchronize(udpResponseBody);
+
+        ByteBuffer.wrap(udpResponse, 0, 2).put("44".getBytes());
+        ByteBuffer.wrap(udpResponse, 2, 4).putInt(48);
+        ByteBuffer.wrap(udpResponse, 6, 48).put(udpResponseBody);
+    }
 }
