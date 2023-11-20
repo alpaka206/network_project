@@ -14,6 +14,7 @@ import javax.swing.JTextField;
 import components.AdminButton;
 import components.ParkSpaceButton;
 import components.ParkingLotFrame;
+import network.Admin;
 
 public class AdminFunc {
 
@@ -92,6 +93,8 @@ public class AdminFunc {
 		for (int i = 1; i < 4; i++) {
 			for (int j = 0; j < 16; j++) {
 				if (spaceName[i][j].equals(input)) {
+					Admin admin = new Admin(i, j);
+					admin.sendRequestToServer();
 					adminBlockState[i][j] = true;
 					JOptionPane.showMessageDialog(null, spaceName[i][j] + "에 다시 주차가 가능합니다", "Unblocked",
 						JOptionPane.INFORMATION_MESSAGE);
