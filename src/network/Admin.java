@@ -83,6 +83,11 @@ public class Admin {
             String responseFlag = new String(Arrays.copyOfRange(response, 0, 2));
             boolean isSuccess = response[2] == 1;
             int responseBodySize = ByteBuffer.wrap(response, 3, 4).getInt();
+            
+            System.out.print("Response in Hexadecimal: ");
+            for (byte b : response) {
+                System.out.print(String.format("%02X ", b));
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }

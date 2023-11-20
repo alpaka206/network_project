@@ -131,6 +131,11 @@ public class Search {
 	            int hours = usetime / 60;
 	            int minutes = usetime % 60;
 	            String formattedUseTime = hours + "시간 " + minutes + "분";
+	            
+	            System.out.print("Response in Hexadecimal: ");
+	            for (byte b : response) {
+	                System.out.print(String.format("%02X ", b));
+	            }
 
 	            // 결과 문자열 생성
 	            result = "가격: " + price + "<br>사용시간: " + formattedUseTime + "<br>주차 자리: " + parkspace + "<br>층수: " + floor;
