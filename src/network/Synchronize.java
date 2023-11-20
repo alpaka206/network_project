@@ -36,23 +36,24 @@ public class Synchronize {
 			//flag = ByteBuffer.wrap(Arrays.copyOfRange(receivePacket.getData(), 0, 4)).getInt();
 			//len = ByteBuffer.wrap(Arrays.copyOfRange(receivePacket.getData(), 4, 8)).getInt();
 
-			System.out.print("Response in Hexadecimal: ");
+			System.out.print("Response in Synchronzie: ");
 			for (byte b : receiveData) {
 				System.out.print(String.format("%02X ", b));
 			}
 			System.out.println();
 
-			for (int i = 1; i < 4; i++) {
+			for (int i = 0; i < 3; i++) {
 				for (int j = 0; j < 16; j++) {
-					int n = ByteBuffer.wrap(Arrays.copyOfRange(receivePacket.getData(), 6 + i * 4, 10 + 4 * i))
+					int n = ByteBuffer
+						.wrap(Arrays.copyOfRange(receivePacket.getData(), 6 + i * 64 + j * 4, 10 + i * 64 + j * 4))
 						.getInt();
 
 					if (n == 1)
-						parkingLots[i][j] = true;
+						parkingLots[i + 1][j] = true;
 					else if (n == 2)
-						adminBlockState[i][j] = false;
+						adminBlockState[i + 1][j] = false;
 					else
-						parkingLots[i][j] = false;
+						parkingLots[i + 1][j] = false;
 				}
 			}
 		} catch (Exception e) {
