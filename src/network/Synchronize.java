@@ -38,7 +38,7 @@ public class Synchronize {
 
 			for (int i = 1; i < 4; i++) {
 				for (int j = 0; j < 16; j++) {
-					int n = ByteBuffer.wrap(Arrays.copyOfRange(receivePacket.getData(), 8 + i * 4, 12 + 4 * i))
+					int n = ByteBuffer.wrap(Arrays.copyOfRange(receivePacket.getData(), 6 + i * 4, 10 + 4 * i))
 						.getInt();
 
 					if (n == 1)
