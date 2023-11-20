@@ -42,12 +42,14 @@ public class Synchronize {
 			}
 			System.out.println();
 
+			System.out.println("received Data:");
 			for (int i = 0; i < 3; i++) {
 				for (int j = 0; j < 16; j++) {
 					int n = ByteBuffer
 						.wrap(Arrays.copyOfRange(receivePacket.getData(), 6 + i * 64 + j * 4, 10 + i * 64 + j * 4))
 						.getInt();
 
+					System.out.print(n + " ");
 					if (n == 1)
 						parkingLots[i + 1][j] = true;
 					else if (n == 2)
@@ -55,6 +57,8 @@ public class Synchronize {
 					else
 						parkingLots[i + 1][j] = false;
 				}
+
+				System.out.println();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
