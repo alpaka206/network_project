@@ -55,8 +55,11 @@ public class Synchronize {
 						parkingLots[i + 1][j] = true;
 					else if (n == 2)
 						adminBlockState[i + 1][j] = false;
-					else
+					else {
 						parkingLots[i + 1][j] = false;
+						adminBlockState[i + 1][j] = true;
+					}
+
 				}
 
 				System.out.println();
@@ -65,6 +68,6 @@ public class Synchronize {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		
+
 	}
 }
