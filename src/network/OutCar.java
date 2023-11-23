@@ -116,7 +116,7 @@ public class OutCar {
             }
 
             // 결과 문자열 생성
-            result = "!!출차되었습니다!!<br>차 번호: " + carNum + "<br>가격: " + price;
+            result = "<html><body>!!출차되었습니다!!<br>차 번호: " + carNum + "<br>가격: " + price + "</body></html>";
             System.out.println(result);
         } catch (IOException e) {
             e.printStackTrace();

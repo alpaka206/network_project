@@ -126,7 +126,7 @@ public class Search {
 	            int price = ByteBuffer.wrap(response, 7, 4).getInt();
 	            int usetime = ByteBuffer.wrap(response, 11, 4).getInt();
 	            int parkspace = ByteBuffer.wrap(response, 15, 4).getInt();
-	            int floor = ByteBuffer.wrap(response, 19, 4).getInt();
+	            int floor = ByteBuffer.wrap(response, 19, 4).getInt() + 1 ;
 
 	            int hours = usetime / 60;
 	            int minutes = usetime % 60;
@@ -138,7 +138,7 @@ public class Search {
 	            }
 
 	            // 결과 문자열 생성
-	            result = "가격: " + price + "<br>사용시간: " + formattedUseTime + "<br>주차 자리: " + parkspace + "<br>층수: " + floor;
+	            result = "<html><body>가격: " + price + "<br>사용시간: " + formattedUseTime + "<br>주차 자리: " + parkspace + "<br>층수: B" + floor + "</body></html>";
 		} catch (IOException e) {
 			 // 검색 실패 예외 처리
             e.printStackTrace();
